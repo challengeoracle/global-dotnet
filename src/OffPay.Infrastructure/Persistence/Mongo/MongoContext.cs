@@ -1,4 +1,5 @@
 using Microsoft.Extensions.Configuration;
+using MongoDB.Bson;
 using MongoDB.Driver;
 
 namespace OffPay.Infrastructure.Persistence.Mongo;
@@ -16,4 +17,9 @@ public class MongoContext
     }
 
     public IMongoCollection<T> GetCollection<T>(string name) => _database.GetCollection<T>(name);
+
+    public async Task PingAsync(CancellationToken ct = default)
+        => await _database.RunCommandAsync<BsonDocument>(
+            new BsonDocumentCommand<BsonDocument>(new BsonDocument("ping", 1)),
+            cancellationToken: ct);
 }
