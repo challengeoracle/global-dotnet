@@ -9,6 +9,7 @@ using OffPay.Application.UseCases.Dispositivos.Commands;
 using OffPay.Application.UseCases.Dispositivos.Queries;
 using OffPay.Application.Validators;
 using OffPay.Infrastructure.Auth;
+using OffPay.Infrastructure.Cripto;
 using OffPay.Infrastructure.Persistence.Oracle;
 using OffPay.Infrastructure.Persistence.Oracle.Repositories;
 
@@ -96,6 +97,7 @@ public static class ServiceCollectionExtensions
         // Auth services
         services.AddScoped<IJwtTokenService, JwtTokenService>();
         services.AddScoped<IDeviceTokenService, DeviceTokenService>();
+        services.AddScoped<IServicoCripto, ServicoCripto>();
 
         // Use cases — Dispositivos
         services.AddScoped<RegistrarDispositivoHandler>();
