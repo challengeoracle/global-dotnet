@@ -7,6 +7,7 @@ builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 
 builder.Services.AddDatabase(builder.Configuration);
+builder.Services.AddMongoDB();
 builder.Services.AddJwtAuthentication(builder.Configuration);
 builder.Services.AddSwagger();
 builder.Services.AddApplicationServices();

@@ -5,11 +5,15 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using OffPay.Application.Abstractions;
+using OffPay.Application.UseCases.Auditoria.Commands;
+using OffPay.Application.UseCases.Auditoria.Queries;
 using OffPay.Application.UseCases.Dispositivos.Commands;
 using OffPay.Application.UseCases.Dispositivos.Queries;
 using OffPay.Application.Validators;
 using OffPay.Infrastructure.Auth;
 using OffPay.Infrastructure.Cripto;
+using OffPay.Infrastructure.Persistence.Mongo;
+using OffPay.Infrastructure.Persistence.Mongo.Repositories;
 using OffPay.Infrastructure.Persistence.Oracle;
 using OffPay.Infrastructure.Persistence.Oracle.Repositories;
 
@@ -88,9 +92,17 @@ public static class ServiceCollectionExtensions
         return services;
     }
 
+    public static IServiceCollection AddMongoDB(this IServiceCollection services)
+    {
+        services.AddSingleton<MongoContext>();
+        services.AddScoped<IPayloadBrutoRepository, PayloadBrutoRepository>();
+
+        return services;
+    }
+
     public static IServiceCollection AddApplicationServices(this IServiceCollection services)
     {
-        // Repositórios
+        // Repositórios Oracle
         services.AddScoped<IDispositivoRepository, DispositivoRepository>();
         services.AddScoped<ILogAuditoriaRepository, LogAuditoriaRepository>();
 
@@ -105,6 +117,11 @@ public static class ServiceCollectionExtensions
         services.AddScoped<RevogarChavesDispositivoHandler>();
         services.AddScoped<ObterDispositivoHandler>();
         services.AddScoped<ListarDispositivosHandler>();
+
+        // Use cases — Auditoria
+        services.AddScoped<ReceberLoteHandler>();
+        services.AddScoped<ObterLogAuditoriaHandler>();
+        services.AddScoped<ListarLogsAuditoriaHandler>();
 
         // Validators
         services.AddValidatorsFromAssemblyContaining<RegistrarDispositivoRequestValidator>();

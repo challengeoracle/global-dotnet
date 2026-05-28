@@ -24,6 +24,14 @@ public class ExceptionHandlingMiddleware
         {
             await EscreverProblemDetails(context, StatusCodes.Status404NotFound, "Recurso nao encontrado", ex.Message);
         }
+        catch (DispositivoInativoException ex)
+        {
+            await EscreverProblemDetails(context, StatusCodes.Status403Forbidden, "Acesso negado", ex.Message);
+        }
+        catch (LogAuditoriaNaoEncontradoException ex)
+        {
+            await EscreverProblemDetails(context, StatusCodes.Status404NotFound, "Recurso nao encontrado", ex.Message);
+        }
         catch (DomainException ex)
         {
             await EscreverProblemDetails(context, StatusCodes.Status422UnprocessableEntity, "Regra de negocio violada", ex.Message);
