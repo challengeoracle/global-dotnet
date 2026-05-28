@@ -1,9 +1,9 @@
 using Microsoft.EntityFrameworkCore;
 using OffPay.Application.Abstractions;
-using OffPay.Domain.Entidades;
+using OffPay.Domain.Entities;
 using OffPay.Domain.Enums;
 
-namespace OffPay.Infrastructure.Persistencia.Oracle.Repositorios;
+namespace OffPay.Infrastructure.Persistence.Oracle.Repositories;
 
 public class LogAuditoriaRepository : ILogAuditoriaRepository
 {

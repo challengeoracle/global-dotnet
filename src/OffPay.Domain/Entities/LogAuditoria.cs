@@ -1,6 +1,6 @@
 using OffPay.Domain.Enums;
 
-namespace OffPay.Domain.Entidades;
+namespace OffPay.Domain.Entities;
 
 public class LogAuditoria
 {

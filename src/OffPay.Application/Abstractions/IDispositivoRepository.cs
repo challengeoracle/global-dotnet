@@ -1,4 +1,4 @@
-using OffPay.Domain.Entidades;
+using OffPay.Domain.Entities;
 using OffPay.Domain.Enums;
 
 namespace OffPay.Application.Abstractions;

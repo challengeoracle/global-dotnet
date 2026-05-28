@@ -1,5 +1,5 @@
 using Microsoft.EntityFrameworkCore;
-using OffPay.Infrastructure.Persistencia.Oracle;
+using OffPay.Infrastructure.Persistence.Oracle;
 
 var builder = WebApplication.CreateBuilder(args);
 

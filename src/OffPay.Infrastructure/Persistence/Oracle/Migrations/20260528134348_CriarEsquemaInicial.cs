@@ -1,9 +1,9 @@
-﻿using System;
+using System;
 using Microsoft.EntityFrameworkCore.Migrations;
 
 #nullable disable
 
-namespace OffPay.Infrastructure.Persistencia.Oracle.Migrations
+namespace OffPay.Infrastructure.Persistence.Oracle.Migrations
 {
     /// <inheritdoc />
     public partial class CriarEsquemaInicial : Migration

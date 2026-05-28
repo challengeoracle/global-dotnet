@@ -1,8 +1,8 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
-using OffPay.Domain.Entidades;
+using OffPay.Domain.Entities;
 
-namespace OffPay.Infrastructure.Persistencia.Oracle.Configurations;
+namespace OffPay.Infrastructure.Persistence.Oracle.Configurations;
 
 public class LogAuditoriaConfiguration : IEntityTypeConfiguration<LogAuditoria>
 {

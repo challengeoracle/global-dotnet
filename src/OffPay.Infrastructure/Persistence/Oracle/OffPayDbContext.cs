@@ -1,7 +1,7 @@
 using Microsoft.EntityFrameworkCore;
-using OffPay.Domain.Entidades;
+using OffPay.Domain.Entities;
 
-namespace OffPay.Infrastructure.Persistencia.Oracle;
+namespace OffPay.Infrastructure.Persistence.Oracle;
 
 public class OffPayDbContext : DbContext
 {

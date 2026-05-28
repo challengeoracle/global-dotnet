@@ -1,9 +1,9 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
-using OffPay.Domain.Entidades;
+using OffPay.Domain.Entities;
 using OffPay.Domain.Enums;
 
-namespace OffPay.Infrastructure.Persistencia.Oracle.Configurations;
+namespace OffPay.Infrastructure.Persistence.Oracle.Configurations;
 
 public class DispositivoConfiguration : IEntityTypeConfiguration<Dispositivo>
 {

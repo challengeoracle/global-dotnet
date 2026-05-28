@@ -1,7 +1,7 @@
 using OffPay.Domain.Enums;
 using OffPay.Domain.Exceptions;
 
-namespace OffPay.Domain.Entidades;
+namespace OffPay.Domain.Entities;
 
 public class Dispositivo
 {
