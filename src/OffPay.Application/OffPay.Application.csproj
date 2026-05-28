@@ -10,4 +10,9 @@
     <ProjectReference Include="..\OffPay.Domain\OffPay.Domain.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <PackageReference Include="FluentValidation" />
+    <PackageReference Include="Mapster" />
+  </ItemGroup>
+
 </Project>
