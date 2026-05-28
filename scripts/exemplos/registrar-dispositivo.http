@@ -2,7 +2,7 @@
 # Extensão necessária: REST Client (VS Code)
 # https://marketplace.visualstudio.com/items?itemName=humao.rest-client
 
-@baseUrl = http://localhost:5000
+@baseUrl = http://localhost:5267
 @contentType = application/json
 
 ###

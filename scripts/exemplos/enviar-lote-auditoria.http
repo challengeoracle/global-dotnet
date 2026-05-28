@@ -4,13 +4,13 @@
 #
 # Pré-requisito: ter executado registrar-dispositivo.http e obtido JWT + deviceToken.
 
-@baseUrl = http://localhost:5000
+@baseUrl = http://localhost:5267
 @contentType = application/json
 
 # Cole os valores obtidos em registrar-dispositivo.http:
-@jwtToken = SEU_JWT_TOKEN_AQUI
-@deviceToken = SEU_DEVICE_TOKEN_AQUI
-@identificadorPublico = SEU_IDENTIFICADOR_PUBLICO_AQUI
+@jwtToken = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJhZG1pbiIsImh0dHA6Ly9zY2hlbWFzLm1pY3Jvc29mdC5jb20vd3MvMjAwOC8wNi9pZGVudGl0eS9jbGFpbXMvcm9sZSI6ImFkbWluIiwianRpIjoiYjY1NzNhMGYtODJmNS00Mzk1LWFlOWYtYmY4YWUxODNjNmQ2IiwiZXhwIjoxNzgwMDMzMjQ5LCJpc3MiOiJvZmZwYXktYXBpIiwiYXVkIjoib2ZmcGF5LWNsaWVudHMifQ.2FXbh4E0-HcYCrKzbt78VirMvyQZBZyoXSdL2TA4bFo
+@deviceToken = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJkZXZpY2VJZCI6ImI0OWM2ZDM4YzhlMTRkYjU5NDY4ZTFiYzFmZDEyNzQ3IiwianRpIjoiNjYxNWRmYmEtZmM1YS00MjIyLWFmNzQtMDQ3MzM5OGFiMWM5IiwiaXNzIjoib2ZmcGF5LWFwaSJ9.IpOihbAaASoVn4q2ZM-kClMDs_85Q6dITu_vMCMcMpg
+@identificadorPublico = b49c6d38c8e14db59468e1bc1fd12747
 
 ###
 # 1. Enviar lote de auditoria
@@ -40,24 +40,24 @@ X-Device-Token: {{deviceToken}}
 
 {
   "loteId": "550e8400-e29b-41d4-a716-446655440000",
-  "dispositivoIdentificador": "{{identificadorPublico}}",
+  "dispositivoIdentificador": "b49c6d38c8e14db59468e1bc1fd12747",
   "geradoEm": "2026-05-28T14:30:00Z",
   "transacoes": [
     {
       "transacaoId": "660e8400-e29b-41d4-a716-446655440001",
       "timestamp": "2026-05-28T14:25:00Z",
-      "conteudoCanonico": "{\"comercianteId\":\"comerciante-uuid-aqui\",\"timestamp\":\"2026-05-28T14:25:00Z\",\"valor\":150.00}",
+      "conteudoCanonico": "{\"comercianteId\":\"comerciante-uuid-teste\",\"timestamp\":\"2026-05-28T14:25:00Z\",\"valor\":150.00}",
       "hashAnterior": "0000000000000000000000000000000000000000000000000000000000000000",
-      "hashAtual": "HASH_SHA256_HEX_64_CHARS_CALCULADO_PELO_MOBILE",
-      "assinatura": "BASE64_DA_ASSINATURA_ECDSA_P256_DER"
+      "hashAtual": "f26ebbb26ecf98d5927642284934935cc2748784e84ec8c3a5363f8b3fd2a652",
+      "assinatura": "MEYCIQDvuGM4N6YcGcXdcNpB9R73IaBuBtQKtm/yW3hecr0BmQIhALaLK4vrd3atvydgqWH6OaSGNqFbZsKMR/lPNa54g7gS"
     },
     {
       "transacaoId": "660e8400-e29b-41d4-a716-446655440002",
       "timestamp": "2026-05-28T14:26:00Z",
-      "conteudoCanonico": "{\"comercianteId\":\"comerciante-uuid-aqui\",\"timestamp\":\"2026-05-28T14:26:00Z\",\"valor\":75.50}",
-      "hashAnterior": "HASH_ATUAL_DA_TRANSACAO_ANTERIOR",
-      "hashAtual": "HASH_SHA256_HEX_64_CHARS_CALCULADO_PELO_MOBILE",
-      "assinatura": "BASE64_DA_ASSINATURA_ECDSA_P256_DER"
+      "conteudoCanonico": "{\"comercianteId\":\"comerciante-uuid-teste\",\"timestamp\":\"2026-05-28T14:26:00Z\",\"valor\":75.50}",
+      "hashAnterior": "f26ebbb26ecf98d5927642284934935cc2748784e84ec8c3a5363f8b3fd2a652",
+      "hashAtual": "0982ca61f5c493bb994e63bebb8f38188ad3d70d8a117cdb7517ea3ac53c7484",
+      "assinatura": "MEUCIQCVTyfXjzb6SN4p6yUHggJJqbDz3f/JiJl8NLK7X430fgIgdOCBsn6gZu6uskj7bUlY2+ZD4xrJ1wDMnPN+zEt6MWQ="
     }
   ]
 }
