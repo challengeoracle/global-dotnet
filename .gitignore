@@ -485,3 +485,4 @@ $RECYCLE.BIN/
 
 # Arquivos locais de desenvolvimento
 CLAUDE.md
+appsettings.Development.json
