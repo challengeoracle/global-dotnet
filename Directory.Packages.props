@@ -1,0 +1,38 @@
+<Project>
+  <PropertyGroup>
+    <ManagePackageVersionsCentrally>true</ManagePackageVersionsCentrally>
+  </PropertyGroup>
+  <ItemGroup>
+    <!-- EF Core -->
+    <PackageVersion Include="Microsoft.EntityFrameworkCore" Version="8.0.11" />
+    <PackageVersion Include="Microsoft.EntityFrameworkCore.Design" Version="8.0.11" />
+    <!-- Oracle -->
+    <PackageVersion Include="Oracle.EntityFrameworkCore" Version="8.21.121" />
+    <!-- MongoDB -->
+    <PackageVersion Include="MongoDB.Driver" Version="3.1.0" />
+    <!-- Auth -->
+    <PackageVersion Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="8.0.11" />
+    <!-- Swagger -->
+    <PackageVersion Include="Swashbuckle.AspNetCore" Version="6.9.0" />
+    <!-- Health Checks -->
+    <PackageVersion Include="AspNetCore.HealthChecks.Oracle" Version="8.0.1" />
+    <PackageVersion Include="AspNetCore.HealthChecks.MongoDb" Version="8.0.1" />
+    <!-- Logging -->
+    <PackageVersion Include="Serilog" Version="4.1.0" />
+    <PackageVersion Include="Serilog.AspNetCore" Version="8.0.3" />
+    <PackageVersion Include="Serilog.Sinks.Console" Version="6.0.0" />
+    <PackageVersion Include="Serilog.Sinks.File" Version="5.0.0" />
+    <!-- Validation -->
+    <PackageVersion Include="FluentValidation" Version="11.11.0" />
+    <PackageVersion Include="FluentValidation.AspNetCore" Version="11.3.0" />
+    <!-- Mapping -->
+    <PackageVersion Include="Mapster" Version="4.2.1" />
+    <!-- Tests -->
+    <PackageVersion Include="FluentAssertions" Version="6.12.0" />
+    <PackageVersion Include="Moq" Version="4.20.72" />
+    <PackageVersion Include="Microsoft.NET.Test.Sdk" Version="17.8.0" />
+    <PackageVersion Include="xunit" Version="2.5.3" />
+    <PackageVersion Include="xunit.runner.visualstudio" Version="2.5.3" />
+    <PackageVersion Include="coverlet.collector" Version="6.0.0" />
+  </ItemGroup>
+</Project>
