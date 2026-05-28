@@ -175,8 +175,6 @@ Edite `src/OffPay.Api/appsettings.json` com os valores reais:
 }
 ```
 
-> **Nunca comite credenciais reais.** Use variáveis de ambiente ou secrets manager em produção.
-
 ---
 
 ## Como Executar
@@ -200,7 +198,7 @@ Após iniciar:
 
 ### Banco de Dados (DDL manual)
 
-O DDL completo está em [`scripts/script-bd.sql`](scripts/script-bd.sql). Para aplicar manualmente no Oracle SQL*Plus ou DBeaver, execute o conteúdo desse arquivo.
+O DDL completo está em [`scripts/script-bd.sql`](scripts/script-bd.sql). Para aplicar manualmente no Oracle SQL Developer, abra o arquivo e execute o conteúdo em uma conexão ativa com o banco.
 
 ---
 
