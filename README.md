@@ -184,9 +184,7 @@ Edite `src/OffPay.Api/appsettings.json` com os valores reais:
 dotnet restore
 
 # 2. Aplicar migrations no Oracle
-dotnet ef database update \
-  --project src/OffPay.Infrastructure \
-  --startup-project src/OffPay.Api
+dotnet ef database update --project src/OffPay.Infrastructure --startup-project src/OffPay.Api
 
 # 3. Executar a API
 dotnet run --project src/OffPay.Api
@@ -287,7 +285,52 @@ dotnet test
 dotnet test --logger "console;verbosity=detailed"
 ```
 
-Os testes de `ServicoCripto` são integração real sem mock — geram pares de chaves ECDSA P-256 em memória e validam assinatura, hash encadeado, adulteração de conteúdo e quebra de cadeia.
+O projeto possui **38 testes automatizados** organizados em três grupos:
+
+### ServicoCriptoTests — integração real, sem mock (9 testes)
+
+Geram pares de chaves ECDSA P-256 em memória e exercitam o serviço criptográfico diretamente:
+
+| Teste | Cenário |
+|---|---|
+| `ValidarAssinatura_AssinaturaCorreta_RetornaTrue` | Assinatura válida aceita |
+| `ValidarAssinatura_ConteudoAlterado_RetornaFalse` | Adulteração de conteúdo detectada |
+| `ValidarAssinatura_HashAnteriorErrado_RetornaFalse` | Hash anterior errado detectado |
+| `ValidarAssinatura_ChaveErrada_RetornaFalse` | Chave pública incorreta rejeitada |
+| `ValidarAssinatura_Base64Invalido_RetornaFalse` | Assinatura corrompida rejeitada |
+| `CalcularHash_Determinístico` | Mesmo input sempre gera mesmo hash |
+| `CalcularHash_64CharsHexMinusculo` | Formato hex 64 chars garantido |
+| `CalcularHash_ParametrosDiferentes_HashDiferente` | Hashes distintos para inputs distintos |
+| `CalcularHash_CadeiaEncadeada` | Cadeia de 3 transações validada de ponta a ponta |
+
+### ValidatorsTests (9 testes)
+
+Validações de entrada com FluentValidation para os três endpoints de escrita:
+
+- `RegistrarDispositivoRequestValidator` — nome vazio, nome muito longo, comercianteId vazio, PEM sem cabeçalho, request válida
+- `BloquearDispositivoRequestValidator` — motivo vazio, motivo muito longo, request válida
+- `LoteAuditoriaRequestValidator` — loteId vazio, transações vazias, hash com menos de 64 chars, hash com letras maiúsculas, hash com caracteres inválidos, request válida
+
+### DispositivoHandlerTests e ReceberLoteHandlerTests (20 testes)
+
+Use cases testados com Moq (repositórios e serviços mockados):
+
+| Teste | Cenário |
+|---|---|
+| `RegistrarDispositivo` — dados válidos | Cria dispositivo e retorna Device Token |
+| `BloquearDispositivo` — não encontrado | Lança `DispositivoNaoEncontradoException` |
+| `BloquearDispositivo` — ativo | Altera status e salva |
+| `BloquearDispositivo` — revogado | Lança `DomainException` |
+| `RevogarChaves` — não encontrado | Lança `DispositivoNaoEncontradoException` |
+| `RevogarChaves` — ativo | Altera status para Revogado e salva |
+| `ReceberLote` — dispositivo não encontrado | Lança `DispositivoNaoEncontradoException` |
+| `ReceberLote` — dispositivo bloqueado | Salva payload forense, cria logs e lança `DispositivoInativoException` |
+| `ReceberLote` — transação válida | Retorna `Validado` |
+| `ReceberLote` — assinatura inválida | Retorna `AssinaturaInvalida` |
+| `ReceberLote` — hashAnterior errado | Retorna `HashQuebrado` |
+| `ReceberLote` — hashAtual divergente | Retorna `HashQuebrado` |
+| `ReceberLote` — hash quebrado cascateia | Transações subsequentes recebem `HashQuebrado` automaticamente |
+| `ReceberLote` — assinatura inválida não cascateia | Próxima transação pode ser `Validado` |
 
 ---
 
@@ -301,10 +344,12 @@ OffPay/
 │   ├── OffPay.Domain/         # Entities, Enums, ValueObjects, Exceptions
 │   └── OffPay.Infrastructure/ # EF Core, Oracle, MongoDB, ServicoCripto, Auth
 ├── tests/
-│   └── OffPay.Tests/          # xUnit — ServicoCriptoTests (real, sem mock)
+│   └── OffPay.Tests/          # xUnit — 38 testes (ServicoCripto, Validators, Handlers)
 ├── scripts/
+│   ├── Demo/                  # Script de demo automatico (dotnet run --project scripts/Demo)
+│   ├── GerarChave/            # Utilitario para gerar chaves e transacoes de teste
 │   ├── script-bd.sql          # DDL Oracle gerado pelas migrations
-│   └── exemplos/              # Arquivos .http para demonstração
+│   └── exemplos/              # Arquivos .http para REST Client (VS Code)
 ├── Directory.Packages.props   # Central Package Management
 └── OffPay.sln
 ```
