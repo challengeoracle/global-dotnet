@@ -193,12 +193,42 @@ dotnet run --project src/OffPay.Api
 ```
 
 Após iniciar:
-- **API:** `https://localhost:7000` / `http://localhost:5000`
-- **Swagger UI:** `https://localhost:7000/swagger`
+- **API:** `http://localhost:5267`
+- **Swagger UI:** `http://localhost:5267/swagger`
 
 ### Banco de Dados (DDL manual)
 
 O DDL completo está em [`scripts/script-bd.sql`](scripts/script-bd.sql). Para aplicar manualmente no Oracle SQL Developer, abra o arquivo e execute o conteúdo em uma conexão ativa com o banco.
+
+---
+
+## Como Testar
+
+Com a API em execução, rode o script de demonstração em um segundo terminal:
+
+```bash
+dotnet run --project scripts/Demo
+```
+
+O script executa o fluxo completo de forma automática:
+
+1. Autentica o usuário administrador (`POST /api/auth/login`)
+2. Gera um par de chaves ECDSA P-256 em memória
+3. Registra um dispositivo com a chave pública (`POST /api/dispositivos`)
+4. Assina duas transações e envia o lote de auditoria (`POST /api/auditoria/lote`)
+5. Consulta os logs gerados no Oracle (`GET /api/auditoria/logs`)
+
+Saída esperada:
+
+```
+[ 1/5 ] Login como admin...  OK — JWT obtido
+[ 2/5 ] Gerando par de chaves ECDSA P-256...  OK — par gerado em memória
+[ 3/5 ] Registrando dispositivo...  OK — id público: <uuid>
+[ 4/5 ] Assinando e enviando lote (2 transações)...  OK — 2 validadas, 0 rejeitadas
+[ 5/5 ] Consultando logs de auditoria no Oracle...  OK — N log(s) no banco
+```
+
+Os endpoints de consulta (`GET /api/dispositivos`, `GET /api/auditoria/logs`, `/health`) podem ser explorados livremente pelo Swagger UI após autenticação com `POST /api/auth/login`.
 
 ---
 
