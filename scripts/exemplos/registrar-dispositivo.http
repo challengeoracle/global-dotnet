@@ -1,0 +1,95 @@
+# OffPay — Exemplos: Gestão de Dispositivos
+# Extensão necessária: REST Client (VS Code)
+# https://marketplace.visualstudio.com/items?itemName=humao.rest-client
+
+@baseUrl = http://localhost:5000
+@contentType = application/json
+
+###
+# 1. Login — obter JWT Bearer
+# Salve o token retornado em @jwtToken abaixo
+
+POST {{baseUrl}}/api/auth/login
+Content-Type: {{contentType}}
+
+{
+  "usuario": "admin",
+  "senha": "TROQUE_PELA_SENHA_DO_APPSETTINGS"
+}
+
+###
+# Cole o token JWT retornado acima aqui:
+@jwtToken = SEU_JWT_TOKEN_AQUI
+
+###
+# 2. Registrar dispositivo (role=admin obrigatório)
+# O campo chavePublicaPem deve ser uma chave pública ECDSA P-256 em formato PEM.
+# Para gerar uma chave de teste em .NET:
+#   using var ecdsa = ECDsa.Create(ECCurve.NamedCurves.nistP256);
+#   Console.WriteLine(ecdsa.ExportSubjectPublicKeyInfoPem());
+#
+# O campo "deviceToken" na resposta deve ser guardado para envio de lotes.
+
+POST {{baseUrl}}/api/dispositivos
+Content-Type: {{contentType}}
+Authorization: Bearer {{jwtToken}}
+
+{
+  "nome": "Caixa 01 — Loja Centro",
+  "comercianteId": "comerciante-uuid-aqui",
+  "chavePublicaPem": "-----BEGIN PUBLIC KEY-----\nMFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAECOLqDrpDFXqjbhz3Yf0P8COLOQUE\nSUA_CHAVE_PUBLICA_P256_AQUI_EM_BASE64\n-----END PUBLIC KEY-----"
+}
+
+###
+# Cole o identificadorPublico e deviceToken da resposta acima aqui:
+@identificadorPublico = SEU_IDENTIFICADOR_PUBLICO_AQUI
+@deviceToken = SEU_DEVICE_TOKEN_AQUI
+
+###
+# 3. Listar dispositivos (com filtros opcionais)
+
+GET {{baseUrl}}/api/dispositivos?pagina=1&tamanho=10
+Authorization: Bearer {{jwtToken}}
+
+###
+# 4. Listar dispositivos de um comerciante específico
+
+GET {{baseUrl}}/api/dispositivos?comercianteId=comerciante-uuid-aqui&status=Ativo&pagina=1&tamanho=20
+Authorization: Bearer {{jwtToken}}
+
+###
+# 5. Buscar dispositivo por identificador público
+
+GET {{baseUrl}}/api/dispositivos/{{identificadorPublico}}
+Authorization: Bearer {{jwtToken}}
+
+###
+# 6. Bloquear dispositivo (role=admin obrigatório)
+
+PATCH {{baseUrl}}/api/dispositivos/{{identificadorPublico}}/bloqueio
+Content-Type: {{contentType}}
+Authorization: Bearer {{jwtToken}}
+
+{
+  "motivo": "Suspeita de uso indevido — aguardando investigação"
+}
+
+###
+# 7. Revogar chaves (role=admin obrigatório)
+# Marca o dispositivo como REVOGADO. Ação irreversível.
+
+DELETE {{baseUrl}}/api/dispositivos/{{identificadorPublico}}/chaves
+Authorization: Bearer {{jwtToken}}
+
+###
+# 8. Health Checks (sem autenticação)
+
+GET {{baseUrl}}/health
+
+###
+
+GET {{baseUrl}}/health/ready
+
+###
+
+GET {{baseUrl}}/health/live

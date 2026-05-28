@@ -1,0 +1,112 @@
+# OffPay — Exemplos: Envio de Lote de Auditoria
+# Extensão necessária: REST Client (VS Code)
+# https://marketplace.visualstudio.com/items?itemName=humao.rest-client
+#
+# Pré-requisito: ter executado registrar-dispositivo.http e obtido JWT + deviceToken.
+
+@baseUrl = http://localhost:5000
+@contentType = application/json
+
+# Cole os valores obtidos em registrar-dispositivo.http:
+@jwtToken = SEU_JWT_TOKEN_AQUI
+@deviceToken = SEU_DEVICE_TOKEN_AQUI
+@identificadorPublico = SEU_IDENTIFICADOR_PUBLICO_AQUI
+
+###
+# 1. Enviar lote de auditoria
+#
+# IMPORTANTE — como gerar os campos criptográficos:
+#
+#   hashAnterior da 1ª transação: "0000000000000000000000000000000000000000000000000000000000000000" (64 zeros)
+#   hashAnterior da transação N:  hashAtual da transação N-1
+#
+#   conteudoCanonico: JSON com chaves ordenadas alfabeticamente, sem espaços
+#     ex: {"comercianteId":"abc","timestamp":"2026-05-28T14:00:00Z","valor":150.00}
+#
+#   Conteúdo assinado: SHA-256( conteudoCanonico + hashAnterior ) — em bytes UTF-8
+#   Formato assinatura: ECDSA P-256, DER/ASN.1, codificado em Base64
+#
+#   hashAtual: SHA-256 hex ( conteudoCanonico + hashAnterior + assinaturaBase64 )
+#
+# O endpoint exige:
+#   - Authorization: Bearer <JWT do usuário>
+#   - X-Device-Token: <Device Token do dispositivo>
+#   - DispositivoIdentificador no body deve bater com o Device Token
+
+POST {{baseUrl}}/api/auditoria/lote
+Content-Type: {{contentType}}
+Authorization: Bearer {{jwtToken}}
+X-Device-Token: {{deviceToken}}
+
+{
+  "loteId": "550e8400-e29b-41d4-a716-446655440000",
+  "dispositivoIdentificador": "{{identificadorPublico}}",
+  "geradoEm": "2026-05-28T14:30:00Z",
+  "transacoes": [
+    {
+      "transacaoId": "660e8400-e29b-41d4-a716-446655440001",
+      "timestamp": "2026-05-28T14:25:00Z",
+      "conteudoCanonico": "{\"comercianteId\":\"comerciante-uuid-aqui\",\"timestamp\":\"2026-05-28T14:25:00Z\",\"valor\":150.00}",
+      "hashAnterior": "0000000000000000000000000000000000000000000000000000000000000000",
+      "hashAtual": "HASH_SHA256_HEX_64_CHARS_CALCULADO_PELO_MOBILE",
+      "assinatura": "BASE64_DA_ASSINATURA_ECDSA_P256_DER"
+    },
+    {
+      "transacaoId": "660e8400-e29b-41d4-a716-446655440002",
+      "timestamp": "2026-05-28T14:26:00Z",
+      "conteudoCanonico": "{\"comercianteId\":\"comerciante-uuid-aqui\",\"timestamp\":\"2026-05-28T14:26:00Z\",\"valor\":75.50}",
+      "hashAnterior": "HASH_ATUAL_DA_TRANSACAO_ANTERIOR",
+      "hashAtual": "HASH_SHA256_HEX_64_CHARS_CALCULADO_PELO_MOBILE",
+      "assinatura": "BASE64_DA_ASSINATURA_ECDSA_P256_DER"
+    }
+  ]
+}
+
+###
+# 2. Listar logs de auditoria (todos)
+
+GET {{baseUrl}}/api/auditoria/logs?pagina=1&tamanho=20
+Authorization: Bearer {{jwtToken}}
+
+###
+# 3. Listar logs de um dispositivo específico
+
+GET {{baseUrl}}/api/auditoria/logs?dispositivoId=1&pagina=1&tamanho=20
+Authorization: Bearer {{jwtToken}}
+
+###
+# 4. Filtrar logs por status e período
+
+GET {{baseUrl}}/api/auditoria/logs?status=HashQuebrado&dataInicio=2026-05-28T00:00:00Z&dataFim=2026-05-28T23:59:59Z&pagina=1&tamanho=50
+Authorization: Bearer {{jwtToken}}
+
+###
+# 5. Buscar log específico por ID
+
+GET {{baseUrl}}/api/auditoria/logs/1
+Authorization: Bearer {{jwtToken}}
+
+###
+# 6. Cenário: lote com dispositivo bloqueado
+# Espera-se 403 Forbidden — os logs DISPOSITIVO_BLOQUEADO são registrados mesmo assim.
+
+POST {{baseUrl}}/api/auditoria/lote
+Content-Type: {{contentType}}
+Authorization: Bearer {{jwtToken}}
+X-Device-Token: {{deviceToken}}
+
+{
+  "loteId": "550e8400-e29b-41d4-a716-446655440099",
+  "dispositivoIdentificador": "{{identificadorPublico}}",
+  "geradoEm": "2026-05-28T15:00:00Z",
+  "transacoes": [
+    {
+      "transacaoId": "660e8400-e29b-41d4-a716-446655440099",
+      "timestamp": "2026-05-28T14:55:00Z",
+      "conteudoCanonico": "{\"valor\":200.00}",
+      "hashAnterior": "0000000000000000000000000000000000000000000000000000000000000000",
+      "hashAtual": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+      "assinatura": "assinatura-qualquer"
+    }
+  ]
+}
