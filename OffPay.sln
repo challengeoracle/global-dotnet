@@ -1,0 +1,54 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.14.36518.9
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "OffPay.Api", "src\OffPay.Api\OffPay.Api.csproj", "{D2A53771-E8E8-41BD-B9CA-846F4044986C}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "OffPay.Application", "src\OffPay.Application\OffPay.Application.csproj", "{03812516-37F3-4557-AC00-EB68DD2D6583}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "OffPay.Domain", "src\OffPay.Domain\OffPay.Domain.csproj", "{3A3125B8-93FD-4323-8DA4-072F8C271770}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "OffPay.Infrastructure", "src\OffPay.Infrastructure\OffPay.Infrastructure.csproj", "{F300C75A-EB09-4D1F-B282-0D9389690417}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "OffPay.Tests", "tests\OffPay.Tests\OffPay.Tests.csproj", "{21ACB89C-F152-4804-BCBC-A5D245D61055}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{8EC462FD-D22E-90A8-E5CE-7E832BA40C5D}"
+	ProjectSection(SolutionItems) = preProject
+		README.md = README.md
+	EndProjectSection
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{D2A53771-E8E8-41BD-B9CA-846F4044986C}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{D2A53771-E8E8-41BD-B9CA-846F4044986C}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{D2A53771-E8E8-41BD-B9CA-846F4044986C}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{D2A53771-E8E8-41BD-B9CA-846F4044986C}.Release|Any CPU.Build.0 = Release|Any CPU
+		{03812516-37F3-4557-AC00-EB68DD2D6583}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{03812516-37F3-4557-AC00-EB68DD2D6583}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{03812516-37F3-4557-AC00-EB68DD2D6583}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{03812516-37F3-4557-AC00-EB68DD2D6583}.Release|Any CPU.Build.0 = Release|Any CPU
+		{3A3125B8-93FD-4323-8DA4-072F8C271770}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{3A3125B8-93FD-4323-8DA4-072F8C271770}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{3A3125B8-93FD-4323-8DA4-072F8C271770}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{3A3125B8-93FD-4323-8DA4-072F8C271770}.Release|Any CPU.Build.0 = Release|Any CPU
+		{F300C75A-EB09-4D1F-B282-0D9389690417}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{F300C75A-EB09-4D1F-B282-0D9389690417}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{F300C75A-EB09-4D1F-B282-0D9389690417}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{F300C75A-EB09-4D1F-B282-0D9389690417}.Release|Any CPU.Build.0 = Release|Any CPU
+		{21ACB89C-F152-4804-BCBC-A5D245D61055}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{21ACB89C-F152-4804-BCBC-A5D245D61055}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{21ACB89C-F152-4804-BCBC-A5D245D61055}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{21ACB89C-F152-4804-BCBC-A5D245D61055}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {23123F02-9F18-4D80-A75E-92F0E87C10B8}
+	EndGlobalSection
+EndGlobal
