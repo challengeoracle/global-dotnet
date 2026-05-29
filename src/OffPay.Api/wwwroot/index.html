@@ -159,10 +159,6 @@
     .search-input::placeholder { color:rgb(var(--mfg)); }
     .search-icon  { position:absolute; right:11px; top:50%; transform:translateY(-50%); color:rgb(var(--mfg)); pointer-events:none; transition:color .3s; }
 
-    /* ── Bar chart ── */
-    .bar-card     { background:rgb(var(--card)); border:1px solid rgb(var(--bdr)); border-radius:var(--rmd); padding:32px 40px; margin-bottom:40px; transition:background-color .3s, border-color .3s; }
-    .bar-scroll   { overflow-x:auto; margin-top:20px; }
-
     /* ── Filter chips ── */
     .filter-row { display:flex; align-items:center; gap:6px; margin-bottom:14px; flex-wrap:wrap; }
     .chip {
@@ -571,16 +567,6 @@
         </div>
       </div>
 
-      <!-- Bar chart -->
-      <div class="bar-card">
-        <div class="eyebrow" style="margin-bottom:4px;">Histórico</div>
-        <div style="font-size:20px;font-weight:900;letter-spacing:-0.5px;margin-bottom:4px;">Atividade por Dia</div>
-        <p class="text-muted" style="font-size:12px;">Transações auditadas nos últimos 14 dias · <span style="display:inline-flex;align-items:center;gap:4px;"><span style="display:inline-block;width:8px;height:8px;border-radius:2px;background:#22c55e;"></span>validado</span> <span style="display:inline-flex;align-items:center;gap:4px;margin-left:8px;"><span style="display:inline-block;width:8px;height:8px;border-radius:2px;background:#ef4444;"></span>inválido</span></p>
-        <div class="bar-scroll" id="barChartWrap">
-          <div style="color:rgb(var(--mfg));font-size:13px;padding:20px 0;">Carregando...</div>
-        </div>
-      </div>
-
       <!-- Devices section -->
       <section id="dispositivos">
         <div class="section-row">
@@ -853,7 +839,6 @@
       logsCache = logs.itens || [];
       renderStats(devs, logs);
       renderChart(logs);
-      renderBarChart(logs);
       checkAlerts(devs);
       applyDevFilter();
       applyLogFilter();
@@ -865,55 +850,6 @@
       document.getElementById('cntLogs').textContent = totalLogs + (totalLogs === 1 ? ' registro' : ' registros');
       nextRefresh = Date.now() + 30000;
     } catch(e) { setStatus(false); toast('Erro ao carregar: ' + e.message); }
-  }
-
-  // ── Bar chart ────────────────────────────────────────────────────────────
-  function renderBarChart(logs) {
-    const wrap = document.getElementById('barChartWrap');
-    const li   = logs.itens || [];
-    if (!li.length) { wrap.innerHTML = '<div style="color:rgb(var(--mfg));font-size:13px;padding:20px 0;">Nenhuma transação auditada ainda.</div>'; return; }
-
-    const byDay = {};
-    li.forEach(l => {
-      const d = (l.timestampRecebimento || l.timestampTransacao || '').slice(0, 10);
-      if (!d) return;
-      if (!byDay[d]) byDay[d] = { total:0, valid:0 };
-      byDay[d].total++;
-      if (l.statusValidacao === 'Validado') byDay[d].valid++;
-    });
-
-    const days = Object.keys(byDay).sort().slice(-14);
-    if (!days.length) { wrap.innerHTML = '<div style="color:rgb(var(--mfg));font-size:13px;padding:20px 0;">Sem dados de data.</div>'; return; }
-
-    const maxVal = Math.max(...days.map(d => byDay[d].total), 1);
-    const n = days.length;
-    // viewBox normalizado em 1000u — preserveAspectRatio="none" estica horizontalmente
-    // mantendo altura fixa de 102px no elemento
-    const VW = 1000, H = 78, LH = 24, PAD = 8;
-    const slotW = (VW - PAD * 2) / n;
-    const BW    = slotW * 0.58;
-
-    const bars = days.map((day, i) => {
-      const { total, valid } = byDay[day];
-      const invalid  = total - valid;
-      const totalH   = Math.round((total   / maxVal) * H);
-      const validH   = Math.round((valid   / maxVal) * H);
-      const invalidH = totalH - validH;
-      const bx       = PAD + i * slotW + (slotW - BW) / 2;
-      const label    = day.slice(5).replace('-', '/');
-      return `<g>
-        ${validH   > 0 ? `<rect x="${bx}" y="${H - validH}"  width="${BW}" height="${validH}"  rx="4" fill="#22c55e" opacity=".85"/>` : ''}
-        ${invalidH > 0 ? `<rect x="${bx}" y="${H - totalH}"  width="${BW}" height="${invalidH}" rx="4" fill="#ef4444" opacity=".75"/>` : ''}
-        ${total === 0   ? `<rect x="${bx}" y="${H - 4}"       width="${BW}" height="4" rx="2" fill="rgb(var(--bdr))"/>` : ''}
-        <text x="${bx + BW / 2}" y="${H + 17}" text-anchor="middle" font-size="22" font-weight="600" fill="rgb(var(--mfg))">${label}</text>
-        ${total > 0 ? `<text x="${bx + BW / 2}" y="${H - totalH - 6}" text-anchor="middle" font-size="22" font-weight="700" fill="currentColor">${total}</text>` : ''}
-      </g>`;
-    }).join('');
-
-    wrap.innerHTML = `<svg viewBox="0 0 ${VW} ${H + LH}" width="100%" height="${H + LH}" preserveAspectRatio="none" style="color:rgb(var(--fg));display:block;">
-      <line x1="0" y1="${H}" x2="${VW}" y2="${H}" stroke="rgb(var(--bdr))" stroke-width="2"/>
-      ${bars}
-    </svg>`;
   }
 
   // ── Filters ───────────────────────────────────────────────────────────────
