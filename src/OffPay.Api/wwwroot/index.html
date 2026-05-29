@@ -147,6 +147,22 @@
     .spinner { width:18px; height:18px; border:2px solid rgb(var(--pfg)/.3); border-top-color:rgb(var(--pfg)); border-radius:50%; animation:spin .6s linear infinite; }
     @keyframes spin { to { transform:rotate(360deg); } }
 
+    /* ── Search ── */
+    .search-wrap  { position:relative; margin-bottom:10px; }
+    .search-input {
+      width:100%; height:36px; border-radius:12px; border:1px solid rgb(var(--bdr));
+      background:rgb(var(--card)); color:rgb(var(--cfg));
+      padding:0 36px 0 14px; font-size:13px; font-family:var(--font);
+      outline:none; transition:border-color .2s, background-color .3s, color .3s;
+    }
+    .search-input:focus { border-color:rgb(var(--fg)); }
+    .search-input::placeholder { color:rgb(var(--mfg)); }
+    .search-icon  { position:absolute; right:11px; top:50%; transform:translateY(-50%); color:rgb(var(--mfg)); pointer-events:none; transition:color .3s; }
+
+    /* ── Bar chart ── */
+    .bar-card     { background:rgb(var(--card)); border:1px solid rgb(var(--bdr)); border-radius:var(--rmd); padding:32px 40px; margin-bottom:40px; transition:background-color .3s, border-color .3s; }
+    .bar-scroll   { overflow-x:auto; margin-top:20px; }
+
     /* ── Filter chips ── */
     .filter-row { display:flex; align-items:center; gap:6px; margin-bottom:14px; flex-wrap:wrap; }
     .chip {
@@ -555,6 +571,16 @@
         </div>
       </div>
 
+      <!-- Bar chart -->
+      <div class="bar-card">
+        <div class="eyebrow" style="margin-bottom:4px;">Histórico</div>
+        <div style="font-size:20px;font-weight:900;letter-spacing:-0.5px;margin-bottom:4px;">Atividade por Dia</div>
+        <p class="text-muted" style="font-size:12px;">Transações auditadas nos últimos 14 dias · <span style="display:inline-flex;align-items:center;gap:4px;"><span style="display:inline-block;width:8px;height:8px;border-radius:2px;background:#22c55e;"></span>validado</span> <span style="display:inline-flex;align-items:center;gap:4px;margin-left:8px;"><span style="display:inline-block;width:8px;height:8px;border-radius:2px;background:#ef4444;"></span>inválido</span></p>
+        <div class="bar-scroll" id="barChartWrap">
+          <div style="color:rgb(var(--mfg));font-size:13px;padding:20px 0;">Carregando...</div>
+        </div>
+      </div>
+
       <!-- Devices section -->
       <section id="dispositivos">
         <div class="section-row">
@@ -571,6 +597,10 @@
               Atualizar
             </button>
           </div>
+        </div>
+        <div class="search-wrap">
+          <input class="search-input" id="devSearch" type="text" placeholder="Buscar por nome, comerciante ou identificador..." oninput="applyDevFilter()">
+          <svg class="search-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
         </div>
         <div class="filter-row" id="devFilters">
           <button class="chip active" onclick="setDevFilter('Todos',this)">Todos</button>
@@ -608,6 +638,10 @@
               Atualizar
             </button>
           </div>
+        </div>
+        <div class="search-wrap">
+          <input class="search-input" id="logSearch" type="text" placeholder="Buscar por transação ID, lote ID ou dispositivo..." oninput="applyLogFilter()">
+          <svg class="search-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
         </div>
         <div class="filter-row" id="logFilters">
           <button class="chip active" onclick="setLogFilter('Todos',this)">Todos</button>
@@ -819,6 +853,7 @@
       logsCache = logs.itens || [];
       renderStats(devs, logs);
       renderChart(logs);
+      renderBarChart(logs);
       checkAlerts(devs);
       applyDevFilter();
       applyLogFilter();
@@ -830,6 +865,51 @@
       document.getElementById('cntLogs').textContent = totalLogs + (totalLogs === 1 ? ' registro' : ' registros');
       nextRefresh = Date.now() + 30000;
     } catch(e) { setStatus(false); toast('Erro ao carregar: ' + e.message); }
+  }
+
+  // ── Bar chart ────────────────────────────────────────────────────────────
+  function renderBarChart(logs) {
+    const wrap = document.getElementById('barChartWrap');
+    const li   = logs.itens || [];
+    if (!li.length) { wrap.innerHTML = '<div style="color:rgb(var(--mfg));font-size:13px;padding:20px 0;">Nenhuma transação auditada ainda.</div>'; return; }
+
+    const byDay = {};
+    li.forEach(l => {
+      const d = (l.timestampRecebimento || l.timestampTransacao || '').slice(0, 10);
+      if (!d) return;
+      if (!byDay[d]) byDay[d] = { total:0, valid:0 };
+      byDay[d].total++;
+      if (l.statusValidacao === 'Validado') byDay[d].valid++;
+    });
+
+    const days   = Object.keys(byDay).sort().slice(-14);
+    if (!days.length) { wrap.innerHTML = '<div style="color:rgb(var(--mfg));font-size:13px;padding:20px 0;">Sem dados de data.</div>'; return; }
+
+    const maxVal = Math.max(...days.map(d => byDay[d].total), 1);
+    const BW = 28, GAP = 10, H = 96, PAD = 16;
+    const W  = days.length * (BW + GAP) - GAP + PAD * 2;
+
+    const bars = days.map((day, i) => {
+      const { total, valid } = byDay[day];
+      const invalid  = total - valid;
+      const totalH   = Math.round((total   / maxVal) * H);
+      const validH   = Math.round((valid   / maxVal) * H);
+      const invalidH = totalH - validH;
+      const bx       = PAD + i * (BW + GAP);
+      const label    = day.slice(5).replace('-', '/');
+      return `<g>
+        ${validH   > 0 ? `<rect x="${bx}" y="${H - validH}" width="${BW}" height="${validH}" rx="3" fill="#22c55e" opacity=".82"/>` : ''}
+        ${invalidH > 0 ? `<rect x="${bx}" y="${H - totalH}" width="${BW}" height="${invalidH}" rx="3" ry="3" fill="#ef4444" opacity=".75"/>` : ''}
+        ${total    === 0 ? `<rect x="${bx}" y="${H - 3}" width="${BW}" height="3" rx="2" fill="rgb(var(--bdr))"/>` : ''}
+        <text x="${bx + BW/2}" y="${H + 13}" text-anchor="middle" font-size="9" font-weight="600" fill="rgb(var(--mfg))">${label}</text>
+        ${total > 0 ? `<text x="${bx + BW/2}" y="${H - totalH - 5}" text-anchor="middle" font-size="9" font-weight="700" fill="currentColor">${total}</text>` : ''}
+      </g>`;
+    }).join('');
+
+    wrap.innerHTML = `<svg viewBox="0 0 ${W} ${H + 22}" width="100%" style="min-width:${Math.min(W, 320)}px;color:rgb(var(--fg));">
+      <line x1="${PAD - 4}" y1="${H}" x2="${W - PAD + 4}" y2="${H}" stroke="rgb(var(--bdr))" stroke-width="1"/>
+      ${bars}
+    </svg>`;
   }
 
   // ── Filters ───────────────────────────────────────────────────────────────
@@ -848,12 +928,24 @@
   }
 
   function applyDevFilter() {
-    const items = activeDevFilter === 'Todos' ? devsCache : devsCache.filter(d => d.status === activeDevFilter);
+    const q = (document.getElementById('devSearch')?.value || '').toLowerCase().trim();
+    let items = activeDevFilter === 'Todos' ? devsCache : devsCache.filter(d => d.status === activeDevFilter);
+    if (q) items = items.filter(d =>
+      (d.nome||'').toLowerCase().includes(q) ||
+      (d.comercianteId||'').toLowerCase().includes(q) ||
+      (d.identificadorPublico||'').toLowerCase().includes(q)
+    );
     renderDevices(items);
   }
 
   function applyLogFilter() {
-    const items = activeLogFilter === 'Todos' ? logsCache : logsCache.filter(l => l.statusValidacao === activeLogFilter);
+    const q = (document.getElementById('logSearch')?.value || '').toLowerCase().trim();
+    let items = activeLogFilter === 'Todos' ? logsCache : logsCache.filter(l => l.statusValidacao === activeLogFilter);
+    if (q) items = items.filter(l =>
+      (l.transacaoId||'').toLowerCase().includes(q) ||
+      (l.loteId||'').toLowerCase().includes(q) ||
+      (l.dispositivoId||'').toLowerCase().includes(q)
+    );
     renderLogs(items);
   }
 
@@ -865,13 +957,30 @@
     const taxa   = li.length ? Math.round(valid/li.length*100) : 0;
     const S = (tag,ico,num,dsc) => `<div class="stat-card">
       <div class="stat-top"><span class="stat-tag">${tag}</span><div class="stat-ico">${ico}</div></div>
-      <div class="stat-num">${num}</div><div class="stat-dsc">${dsc}</div>
+      <div class="stat-num" data-target="${num}">0</div><div class="stat-dsc">${dsc}</div>
     </div>`;
     document.getElementById('statsGrid').innerHTML =
       S('Dispositivos', iDev(), devs.totalRegistros??it.length, 'Total cadastrado') +
       S('Ativos',       iChk(), ativos,                         'Em operação agora') +
       S('Logs',         iLog(), logs.totalRegistros??li.length,  'Transações auditadas') +
       S('Validação',    iShd(), taxa+'%',                        `${valid} de ${li.length} validadas`);
+    animateCounters();
+  }
+
+  function animateCounters() {
+    document.querySelectorAll('.stat-num[data-target]').forEach(el => {
+      const raw = el.dataset.target;
+      const isP = raw.endsWith('%');
+      const target = parseInt(raw);
+      if (isNaN(target)) { el.textContent = raw; return; }
+      const t0 = performance.now();
+      (function tick(now) {
+        const p    = Math.min((now - t0) / 750, 1);
+        const ease = 1 - Math.pow(1 - p, 3);
+        el.textContent = Math.round(target * ease) + (isP ? '%' : '');
+        if (p < 1) requestAnimationFrame(tick);
+      })(t0);
+    });
   }
 
   // ── Donut chart ───────────────────────────────────────────────────────────
