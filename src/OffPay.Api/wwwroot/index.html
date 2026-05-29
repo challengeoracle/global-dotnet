@@ -5,33 +5,28 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>OffPay — Painel de Auditoria</title>
   <script>
-    // Apply theme before paint to avoid flash
     (function() {
       const saved = localStorage.getItem('theme');
-      const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
-      if (saved === 'dark' || (!saved && prefersDark)) {
-        document.documentElement.classList.add('dark');
-      }
+      const sys   = window.matchMedia('(prefers-color-scheme: dark)').matches;
+      if (saved === 'dark' || (!saved && sys)) document.documentElement.classList.add('dark');
     })();
   </script>
   <style>
-    /* ── Tokens — light (off-white dominant, monochrome) ── */
     :root {
-      --background: 250 250 248;   /* warm off-white */
+      --background: 250 250 248;
       --foreground: 20 20 20;
       --card: 255 255 255;
       --card-foreground: 20 20 20;
       --muted: 243 243 241;
       --muted-foreground: 110 110 115;
-      --primary: 20 20 20;         /* charcoal — buttons, logo PAY, active */
+      --primary: 20 20 20;
       --primary-foreground: 250 250 248;
       --border: 229 229 227;
-      --danger: 220 38 38;         /* red only for error/status */
+      --danger: 220 38 38;
       --radius-sm: 16px;
       --radius-md: 24px;
-      --font-sans: -apple-system, "Segoe UI", Roboto, system-ui, sans-serif;
+      --font: -apple-system, "Segoe UI", Roboto, system-ui, sans-serif;
     }
-    /* ── Tokens — dark (near-black, off-white accents) ── */
     html.dark {
       --background: 10 10 10;
       --foreground: 245 245 243;
@@ -39,323 +34,463 @@
       --card-foreground: 245 245 243;
       --muted: 28 28 30;
       --muted-foreground: 145 145 150;
-      --primary: 245 245 243;      /* off-white accent in dark */
+      --primary: 245 245 243;
       --primary-foreground: 12 12 12;
       --border: 38 38 38;
       --danger: 239 68 68;
     }
 
-    *, *::before, *::after {
-      margin: 0; padding: 0; box-sizing: border-box;
-      transition: color .3s, background-color .3s, border-color .3s;
-    }
+    *, *::before, *::after { margin:0; padding:0; box-sizing:border-box; }
     body {
       background: rgb(var(--background));
       color: rgb(var(--foreground));
-      font-family: var(--font-sans);
+      font-family: var(--font);
       min-height: 100vh;
       -webkit-font-smoothing: antialiased;
+      transition: background-color .3s, color .3s;
     }
 
     /* ── Logo ── */
-    .logo { display: flex; align-items: baseline; }
-    .logo-off { font-weight: 100; letter-spacing: 6px; color: rgb(var(--foreground)); }
-    .logo-pay { font-weight: 900; color: rgb(var(--primary)); }
-    .logo-bar { height: 3px; border-radius: 9999px; background: rgb(var(--primary)); margin-top: 3px; }
+    .logo     { display:flex; align-items:baseline; }
+    .logo-off { font-weight:100; letter-spacing:6px; }
+    .logo-pay { font-weight:900; }
+    .logo-bar { height:3px; border-radius:9999px; margin-top:3px; }
 
-    /* ── Typography ── */
-    .eyebrow {
-      color: rgb(var(--muted-foreground));
-      font-size: 11px; font-weight: 700;
-      text-transform: uppercase; letter-spacing: 3px;
-    }
-    .title-hero    { font-size: 34px; font-weight: 900; letter-spacing: -1px; }
-    .title-section { font-size: 22px; font-weight: 900; letter-spacing: -1px; }
-    .text-muted    { color: rgb(var(--muted-foreground)); font-size: 14px; line-height: 1.75; }
+    /* ── Transitions ── */
+    .tr { transition: color .3s, background-color .3s, border-color .3s, opacity .2s; }
 
-    /* ── Top bar ── */
-    .topbar {
-      position: sticky; top: 0; z-index: 100;
-      background: rgb(var(--card));
-      border-bottom: 1px solid rgb(var(--border));
-      padding: 0 24px; height: 64px;
-      display: flex; align-items: center; justify-content: space-between;
-    }
-    .topbar-left { display: flex; align-items: center; gap: 16px; }
-    .topbar-divider { width: 1px; height: 32px; background: rgb(var(--border)); }
-    .topbar-label {
-      font-size: 11px; font-weight: 700;
-      text-transform: uppercase; letter-spacing: 2px;
-      color: rgb(var(--muted-foreground));
-    }
-    .topbar-right { display: flex; align-items: center; gap: 10px; }
-
-    /* ── Pills (header) ── */
-    .status-pill {
-      display: flex; align-items: center; gap: 7px;
-      background: rgb(var(--muted)); border-radius: 9999px; padding: 6px 12px;
-    }
-    .status-dot { width: 8px; height: 8px; border-radius: 9999px; background: #22c55e; flex-shrink: 0; }
-    .status-dot.error { background: rgb(var(--danger)); }
-    .status-text {
-      font-size: 11px; font-weight: 700;
-      text-transform: uppercase; letter-spacing: 1px;
-      color: rgb(var(--muted-foreground));
-    }
-    .refresh-pill {
-      display: flex; align-items: center; gap: 6px;
-      background: rgb(var(--muted)); border-radius: 9999px; padding: 6px 12px;
-      font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 1px;
-      color: rgb(var(--muted-foreground));
+    /* ═══════════════════════════════════════════════
+       LOGIN — split-screen
+    ═══════════════════════════════════════════════ */
+    .login-split {
+      position: fixed; inset:0; display:flex; z-index:200;
     }
 
-    /* ── Theme toggle ── */
-    .theme-btn {
-      width: 40px; height: 40px; border-radius: 9999px;
-      background: rgb(var(--muted));
-      border: 1px solid rgb(var(--border));
-      cursor: pointer;
-      display: flex; align-items: center; justify-content: center;
-      color: rgb(var(--foreground));
-      flex-shrink: 0;
+    /* Left — always dark, branding */
+    .login-left {
+      width: 56%; background: #0A0A0A;
+      display: flex; flex-direction: column;
+      padding: 44px 52px; position: relative; overflow: hidden;
     }
-    .theme-btn:hover { opacity: .75; }
-    .theme-btn:active { opacity: .6; }
-    .icon-sun  { display: block; }
-    .icon-moon { display: none;  }
-    html.dark .icon-sun  { display: none;  }
-    html.dark .icon-moon { display: block; }
+
+    /* dot-grid texture */
+    .login-left::before {
+      content:''; position:absolute; inset:0; pointer-events:none;
+      background-image: radial-gradient(circle, rgba(255,255,255,.055) 1px, transparent 1px);
+      background-size: 28px 28px;
+    }
+
+    /* glow blob */
+    .login-left::after {
+      content:''; position:absolute; pointer-events:none;
+      width: 600px; height: 600px; border-radius:50%;
+      background: radial-gradient(circle, rgba(245,245,243,.04) 0%, transparent 70%);
+      top: 50%; left: 30%; transform: translate(-50%,-50%);
+    }
+
+    .login-left-top {
+      position: relative; z-index:1;
+    }
+
+    .login-left-center {
+      position: relative; z-index:1;
+      flex: 1; display:flex; flex-direction:column; justify-content:center;
+      padding-bottom: 40px;
+    }
+
+    .login-left-bottom {
+      position: relative; z-index:1;
+    }
+
+    /* Big headline */
+    .hero-line1 {
+      font-size: clamp(52px, 5.5vw, 80px);
+      font-weight: 900; letter-spacing: -2px;
+      color: #F5F5F3; line-height: 1;
+    }
+    .hero-line2 {
+      font-size: clamp(52px, 5.5vw, 80px);
+      font-weight: 100; letter-spacing: -1px;
+      color: rgba(245,245,243,.45); line-height: 1;
+      margin-bottom: 48px;
+    }
+
+    /* Feature chips */
+    .features { display:flex; flex-direction:column; gap:14px; }
+    .feature {
+      display: flex; align-items: flex-start; gap: 14px;
+    }
+    .feature-icon {
+      width: 36px; height: 36px; border-radius: 10px; flex-shrink:0;
+      background: rgba(255,255,255,.06);
+      border: 1px solid rgba(255,255,255,.1);
+      display: flex; align-items:center; justify-content:center;
+      color: rgba(245,245,243,.7);
+    }
+    .feature-text { padding-top:2px; }
+    .feature-title { font-size:14px; font-weight:700; color:#F5F5F3; }
+    .feature-desc  { font-size:12px; color:rgba(245,245,243,.45); margin-top:2px; line-height:1.5; }
+
+    /* Left footer */
+    .left-footer {
+      font-size: 11px; font-weight:700; text-transform:uppercase;
+      letter-spacing:2px; color:rgba(245,245,243,.25);
+    }
+
+    /* Right — theme-aware */
+    .login-right {
+      width: 44%;
+      background: rgb(var(--background));
+      display: flex; flex-direction:column;
+      align-items: center; justify-content:center;
+      padding: 48px 52px; position:relative;
+      transition: background-color .3s;
+    }
+
+    .login-form-wrap {
+      width: 100%; max-width: 340px;
+    }
+
+    /* Theme toggle — top-right of right panel */
+    .theme-btn-right {
+      position: absolute; top:24px; right:24px;
+    }
+
+    /* ── Form typography ── */
+    .form-eyebrow {
+      font-size: 11px; font-weight:700; text-transform:uppercase;
+      letter-spacing:3px; color:rgb(var(--muted-foreground));
+      margin-bottom:10px;
+    }
+    .form-title {
+      font-size: 32px; font-weight:900; letter-spacing:-1px;
+      color: rgb(var(--foreground)); margin-bottom:6px;
+    }
+    .form-desc {
+      font-size:14px; color:rgb(var(--muted-foreground));
+      line-height:1.65; margin-bottom:36px; max-width:300px;
+    }
+
+    /* ── Inputs ── */
+    .input-group { display:flex; flex-direction:column; gap:7px; margin-bottom:14px; }
+    .input-label {
+      font-size:11px; font-weight:700; text-transform:uppercase;
+      letter-spacing:2px; color:rgb(var(--muted-foreground));
+    }
+    input[type="text"], input[type="password"] {
+      height:56px; border-radius:var(--radius-sm);
+      border:1px solid rgb(var(--border));
+      background:rgb(var(--background));
+      color:rgb(var(--card-foreground));
+      padding:0 16px; font-size:16px; font-family:var(--font);
+      outline:none; width:100%;
+      caret-color:rgb(var(--foreground));
+      transition:border-color .2s, background-color .3s;
+    }
+    input:focus { border-color:rgb(var(--foreground)); }
+    input::placeholder { color:#a1a1aa; }
+
+    .error-box {
+      background:rgb(var(--danger)/.1); border-radius:12px;
+      padding:12px 14px; color:rgb(var(--danger));
+      font-size:13px; font-weight:500; margin-bottom:8px;
+    }
 
     /* ── Buttons ── */
     .btn-primary {
-      height: 56px; padding: 0 24px;
-      border-radius: var(--radius-sm);
-      background: rgb(var(--primary));
-      color: rgb(var(--primary-foreground));
-      font-weight: 700; text-transform: uppercase;
-      letter-spacing: 2px; font-size: 14px;
-      border: none; cursor: pointer; font-family: var(--font-sans);
-      display: inline-flex; align-items: center; justify-content: center; gap: 8px;
-      width: 100%;
+      height:56px; width:100%; padding:0 24px;
+      border-radius:var(--radius-sm);
+      background:rgb(var(--primary)); color:rgb(var(--primary-foreground));
+      font-weight:700; text-transform:uppercase; letter-spacing:2px; font-size:14px;
+      border:none; cursor:pointer; font-family:var(--font);
+      display:inline-flex; align-items:center; justify-content:center; gap:8px;
+      margin-top:8px;
     }
-    .btn-primary:hover  { opacity: .88; }
-    .btn-primary:active { opacity: .75; }
-    .btn-primary:disabled { opacity: .5; cursor: not-allowed; }
+    .btn-primary:hover  { opacity:.88; }
+    .btn-primary:active { opacity:.75; }
+    .btn-primary:disabled { opacity:.5; cursor:not-allowed; }
 
     .btn-secondary {
-      height: 40px; padding: 0 16px;
-      border-radius: var(--radius-sm);
-      border: 1px solid rgb(var(--border));
-      background: rgb(var(--card));
-      color: rgb(var(--card-foreground));
-      font-weight: 700; text-transform: uppercase;
-      letter-spacing: 2px; font-size: 11px;
-      cursor: pointer; font-family: var(--font-sans);
-      display: inline-flex; align-items: center; gap: 6px;
+      height:40px; padding:0 16px;
+      border-radius:var(--radius-sm);
+      border:1px solid rgb(var(--border)); background:rgb(var(--card));
+      color:rgb(var(--card-foreground));
+      font-weight:700; text-transform:uppercase; letter-spacing:2px; font-size:11px;
+      cursor:pointer; font-family:var(--font);
+      display:inline-flex; align-items:center; gap:6px;
+      transition:color .3s, background-color .3s, border-color .3s;
     }
-    .btn-secondary:hover  { opacity: .8; }
-    .btn-secondary:active { opacity: .65; }
+    .btn-secondary:hover  { opacity:.8; }
+    .btn-secondary:active { opacity:.65; }
 
-    /* ── Page ── */
-    .page { max-width: 1200px; margin: 0 auto; padding: 40px 24px 64px; }
-    .page-header { margin-bottom: 32px; }
-
-    /* ── Stats ── */
-    .stats-grid {
-      display: grid; grid-template-columns: repeat(4,1fr);
-      gap: 12px; margin-bottom: 32px;
+    /* ── Theme button ── */
+    .theme-btn {
+      width:40px; height:40px; border-radius:9999px;
+      background:rgb(var(--muted)); border:1px solid rgb(var(--border));
+      cursor:pointer; display:flex; align-items:center; justify-content:center;
+      color:rgb(var(--foreground)); flex-shrink:0;
+      transition:color .3s, background-color .3s, border-color .3s;
     }
-    .stat-card {
-      background: rgb(var(--card));
-      border: 1px solid rgb(var(--border));
-      border-radius: var(--radius-md); padding: 20px;
-    }
-    .stat-icon {
-      width: 48px; height: 48px; border-radius: 16px;
-      background: rgb(var(--muted));
-      display: flex; align-items: center; justify-content: center;
-      margin-bottom: 16px;
-      color: rgb(var(--foreground));
-    }
-    .stat-label { font-size: 13px; color: rgb(var(--muted-foreground)); }
-    .stat-value {
-      font-size: 30px; font-weight: 900; letter-spacing: -1px;
-      color: rgb(var(--card-foreground)); margin-top: 4px;
-      font-variant-numeric: tabular-nums;
-    }
-    .stat-desc { font-size: 12px; color: rgb(var(--muted-foreground)); margin-top: 4px; line-height: 20px; }
-
-    /* ── Tables ── */
-    .two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; }
-    .table-card {
-      background: rgb(var(--card));
-      border: 1px solid rgb(var(--border));
-      border-radius: var(--radius-md); overflow: hidden;
-    }
-    .table-card-header {
-      padding: 20px 24px 16px;
-      border-bottom: 1px solid rgb(var(--border));
-      display: flex; align-items: flex-end; justify-content: space-between;
-    }
-    table { width: 100%; border-collapse: collapse; }
-    thead th {
-      padding: 10px 20px; text-align: left;
-      font-size: 10px; font-weight: 700;
-      text-transform: uppercase; letter-spacing: 2px;
-      color: rgb(var(--muted-foreground));
-      background: rgb(var(--muted));
-    }
-    tbody tr { border-bottom: 1px solid rgb(var(--border)); }
-    tbody tr:last-child { border-bottom: none; }
-    tbody tr:hover { background: rgb(var(--muted) / .5); }
-    tbody td { padding: 14px 20px; font-size: 13px; color: rgb(var(--card-foreground)); }
-
-    /* ── Badges ── */
-    .badge {
-      display: inline-flex; align-items: center;
-      border-radius: 9999px; padding: 3px 10px;
-      font-size: 10px; font-weight: 900;
-      text-transform: uppercase; letter-spacing: 1px; white-space: nowrap;
-    }
-    .badge-green  { background: rgb(34 197 94 / .12);  color: #16a34a; }
-    .badge-orange { background: rgb(249 115 22 / .12); color: #ea580c; }
-    .badge-red    { background: rgb(var(--danger) / .12); color: rgb(var(--danger)); }
-    .badge-gray   { background: rgb(var(--muted)); color: rgb(var(--muted-foreground)); }
-    html.dark .badge-green  { color: #4ade80; }
-    html.dark .badge-orange { color: #fb923c; }
-
-    /* ── Login ── */
-    .login-overlay {
-      position: fixed; inset: 0;
-      background: rgb(var(--background));
-      z-index: 200;
-      display: flex; align-items: center; justify-content: center; padding: 24px;
-    }
-    .login-card {
-      background: rgb(var(--card));
-      border: 1px solid rgb(var(--border));
-      border-radius: var(--radius-md);
-      padding: 40px; width: 100%; max-width: 400px;
-    }
-    .login-theme-btn {
-      position: fixed; top: 20px; right: 24px;
-    }
-    .input-group { display: flex; flex-direction: column; gap: 6px; margin-bottom: 14px; }
-    .input-label {
-      font-size: 11px; font-weight: 700;
-      text-transform: uppercase; letter-spacing: 2px;
-      color: rgb(var(--muted-foreground));
-    }
-    input[type="text"], input[type="password"] {
-      height: 56px; border-radius: var(--radius-sm);
-      border: 1px solid rgb(var(--border));
-      background: rgb(var(--background));
-      color: rgb(var(--card-foreground));
-      padding: 0 16px; font-size: 16px; font-family: var(--font-sans);
-      outline: none; width: 100%;
-      caret-color: rgb(var(--foreground));
-    }
-    input:focus { border-color: rgb(var(--foreground)); }
-    input::placeholder { color: #a1a1aa; }
-    .error-box {
-      background: rgb(var(--danger) / .1);
-      border-radius: 12px; padding: 12px 14px;
-      color: rgb(var(--danger)); font-size: 13px; font-weight: 500; margin-bottom: 8px;
-    }
+    .theme-btn:hover  { opacity:.75; }
+    .theme-btn:active { opacity:.55; }
+    .icon-sun  { display:block; }
+    .icon-moon { display:none;  }
+    html.dark .icon-sun  { display:none;  }
+    html.dark .icon-moon { display:block; }
 
     /* ── Spinner ── */
     .spinner {
-      width: 18px; height: 18px;
-      border: 2px solid rgb(var(--primary-foreground) / .3);
-      border-top-color: rgb(var(--primary-foreground));
-      border-radius: 50%; animation: spin .6s linear infinite;
+      width:18px; height:18px;
+      border:2px solid rgb(var(--primary-foreground)/.3);
+      border-top-color:rgb(var(--primary-foreground));
+      border-radius:50%; animation:spin .6s linear infinite;
     }
-    @keyframes spin { to { transform: rotate(360deg); } }
+    @keyframes spin { to { transform:rotate(360deg); } }
 
-    /* ── Skeleton ── */
-    .skeleton { background: rgb(var(--muted)); border-radius: 8px; animation: pulse 1.5s ease-in-out infinite; }
-    @keyframes pulse { 0%,100% { opacity:1; } 50% { opacity:.4; } }
+    /* ── Mobile ── */
+    @media (max-width: 768px) {
+      .login-split { flex-direction:column; overflow-y:auto; }
+      .login-left  { width:100%; min-height:auto; padding:36px 28px 40px; }
+      .login-right { width:100%; min-height:auto; padding:40px 28px 60px; justify-content:flex-start; }
+      .hero-line1, .hero-line2 { font-size:clamp(38px,10vw,52px); }
+      .login-left-center { padding-bottom:0; }
+    }
 
-    /* ── Toast ── */
-    .toast-wrap { position: fixed; bottom: 24px; right: 24px; z-index: 400; display: flex; flex-direction: column; gap: 8px; }
+    /* ═══════════════════════════════════════════════
+       TOPBAR
+    ═══════════════════════════════════════════════ */
+    .topbar {
+      position:sticky; top:0; z-index:100;
+      background:rgb(var(--card));
+      border-bottom:1px solid rgb(var(--border));
+      padding:0 24px; height:64px;
+      display:flex; align-items:center; justify-content:space-between;
+      transition:background-color .3s, border-color .3s;
+    }
+    .topbar-left  { display:flex; align-items:center; gap:16px; }
+    .topbar-div   { width:1px; height:32px; background:rgb(var(--border)); transition:background-color .3s; }
+    .topbar-label { font-size:11px; font-weight:700; text-transform:uppercase; letter-spacing:2px; color:rgb(var(--muted-foreground)); }
+    .topbar-right { display:flex; align-items:center; gap:10px; }
+
+    .status-pill {
+      display:flex; align-items:center; gap:7px;
+      background:rgb(var(--muted)); border-radius:9999px; padding:6px 12px;
+      transition:background-color .3s;
+    }
+    .status-dot  { width:8px; height:8px; border-radius:9999px; background:#22c55e; flex-shrink:0; }
+    .status-dot.error { background:rgb(var(--danger)); }
+    .status-text { font-size:11px; font-weight:700; text-transform:uppercase; letter-spacing:1px; color:rgb(var(--muted-foreground)); }
+
+    .refresh-pill {
+      display:flex; align-items:center; gap:6px;
+      background:rgb(var(--muted)); border-radius:9999px; padding:6px 12px;
+      font-size:11px; font-weight:700; text-transform:uppercase; letter-spacing:1px;
+      color:rgb(var(--muted-foreground)); transition:background-color .3s;
+    }
+
+    /* ═══════════════════════════════════════════════
+       DASHBOARD
+    ═══════════════════════════════════════════════ */
+    .page { max-width:1200px; margin:0 auto; padding:40px 24px 64px; }
+    .page-header { margin-bottom:32px; }
+    .eyebrow { font-size:11px; font-weight:700; text-transform:uppercase; letter-spacing:3px; color:rgb(var(--muted-foreground)); }
+    .title-hero    { font-size:34px; font-weight:900; letter-spacing:-1px; }
+    .title-section { font-size:22px; font-weight:900; letter-spacing:-1px; }
+    .text-muted    { color:rgb(var(--muted-foreground)); font-size:14px; line-height:1.75; }
+
+    .stats-grid { display:grid; grid-template-columns:repeat(4,1fr); gap:12px; margin-bottom:32px; }
+    .stat-card {
+      background:rgb(var(--card)); border:1px solid rgb(var(--border));
+      border-radius:var(--radius-md); padding:20px;
+      transition:background-color .3s, border-color .3s;
+    }
+    .stat-icon {
+      width:48px; height:48px; border-radius:16px; background:rgb(var(--muted));
+      display:flex; align-items:center; justify-content:center;
+      margin-bottom:16px; color:rgb(var(--foreground));
+      transition:background-color .3s, color .3s;
+    }
+    .stat-label { font-size:13px; color:rgb(var(--muted-foreground)); }
+    .stat-value { font-size:30px; font-weight:900; letter-spacing:-1px; color:rgb(var(--card-foreground)); margin-top:4px; font-variant-numeric:tabular-nums; }
+    .stat-desc  { font-size:12px; color:rgb(var(--muted-foreground)); margin-top:4px; line-height:20px; }
+
+    .two-col { display:grid; grid-template-columns:1fr 1fr; gap:24px; }
+    .table-card {
+      background:rgb(var(--card)); border:1px solid rgb(var(--border));
+      border-radius:var(--radius-md); overflow:hidden;
+      transition:background-color .3s, border-color .3s;
+    }
+    .table-card-header {
+      padding:20px 24px 16px; border-bottom:1px solid rgb(var(--border));
+      display:flex; align-items:flex-end; justify-content:space-between;
+      transition:border-color .3s;
+    }
+    table { width:100%; border-collapse:collapse; }
+    thead th {
+      padding:10px 20px; text-align:left;
+      font-size:10px; font-weight:700; text-transform:uppercase; letter-spacing:2px;
+      color:rgb(var(--muted-foreground)); background:rgb(var(--muted));
+      transition:background-color .3s, color .3s;
+    }
+    tbody tr { border-bottom:1px solid rgb(var(--border)); transition:border-color .3s; }
+    tbody tr:last-child { border-bottom:none; }
+    tbody tr:hover { background:rgb(var(--muted)/.5); }
+    tbody td { padding:14px 20px; font-size:13px; color:rgb(var(--card-foreground)); transition:color .3s; }
+
+    .badge {
+      display:inline-flex; align-items:center;
+      border-radius:9999px; padding:3px 10px;
+      font-size:10px; font-weight:900; text-transform:uppercase; letter-spacing:1px; white-space:nowrap;
+    }
+    .badge-green  { background:rgb(34 197 94/.12);       color:#16a34a; }
+    .badge-orange { background:rgb(249 115 22/.12);      color:#ea580c; }
+    .badge-red    { background:rgb(var(--danger)/.12);   color:rgb(var(--danger)); }
+    .badge-gray   { background:rgb(var(--muted));        color:rgb(var(--muted-foreground)); }
+    html.dark .badge-green  { color:#4ade80; }
+    html.dark .badge-orange { color:#fb923c; }
+
+    .skeleton { background:rgb(var(--muted)); border-radius:8px; animation:pulse 1.5s ease-in-out infinite; }
+    @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:.4} }
+
+    .toast-wrap { position:fixed; bottom:24px; right:24px; z-index:400; display:flex; flex-direction:column; gap:8px; }
     .toast {
-      background: rgb(var(--card)); border: 1px solid rgb(var(--border));
-      border-radius: var(--radius-sm); padding: 14px 18px;
-      font-size: 14px; font-weight: 500; color: rgb(var(--card-foreground)); min-width: 260px;
-      animation: toast-in .2s ease-out;
+      background:rgb(var(--card)); border:1px solid rgb(var(--border));
+      border-radius:var(--radius-sm); padding:14px 18px;
+      font-size:14px; font-weight:500; color:rgb(var(--card-foreground)); min-width:260px;
+      animation:toast-in .2s ease-out;
     }
-    @keyframes toast-in { from { opacity:0; transform:translateY(8px); } to { opacity:1; transform:translateY(0); } }
+    @keyframes toast-in { from{opacity:0;transform:translateY(8px)} to{opacity:1;transform:translateY(0)} }
 
-    /* ── Misc ── */
-    .mono  { font-family: "SF Mono","Fira Code",monospace; font-size: 12px; }
-    .empty { padding: 40px 24px; text-align: center; color: rgb(var(--muted-foreground)); font-size: 14px; }
-    .trunc { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 130px; display: block; }
+    .mono  { font-family:"SF Mono","Fira Code",monospace; font-size:12px; }
+    .empty { padding:40px 24px; text-align:center; color:rgb(var(--muted-foreground)); font-size:14px; }
+    .trunc { overflow:hidden; text-overflow:ellipsis; white-space:nowrap; max-width:130px; display:block; }
 
-    @media (max-width: 960px) { .stats-grid { grid-template-columns: repeat(2,1fr); } .two-col { grid-template-columns: 1fr; } }
-    @media (max-width: 500px)  { .stats-grid { grid-template-columns: 1fr; } }
+    @media (max-width:960px) { .stats-grid{grid-template-columns:repeat(2,1fr)} .two-col{grid-template-columns:1fr} }
+    @media (max-width:500px)  { .stats-grid{grid-template-columns:1fr} }
   </style>
 </head>
 <body>
 
-<!-- ── Login ─────────────────────────────────────────────────────────────── -->
-<div id="loginOverlay" class="login-overlay">
-  <!-- theme toggle visible on login screen too -->
-  <button class="theme-btn login-theme-btn" onclick="toggleTheme()" aria-label="Alternar tema">
-    <svg class="icon-sun" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-      <circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/>
-      <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/>
-      <line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/>
-      <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/>
-    </svg>
-    <svg class="icon-moon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-      <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>
-    </svg>
-  </button>
+<!-- ═══════════════════════════════════════════════════
+     LOGIN — split-screen
+════════════════════════════════════════════════════ -->
+<div id="loginOverlay" class="login-split">
 
-  <div class="login-card">
-    <div style="margin-bottom:32px;">
+  <!-- Left: dark branding panel -->
+  <div class="login-left">
+    <!-- Logo -->
+    <div class="login-left-top">
       <div class="logo">
-        <span class="logo-off" style="font-size:22px;">OFF</span>
-        <span class="logo-pay" style="font-size:22px;">PAY</span>
+        <span class="logo-off" style="font-size:20px;color:#F5F5F3;">OFF</span>
+        <span class="logo-pay" style="font-size:20px;color:#F5F5F3;">PAY</span>
       </div>
-      <div class="logo-bar" style="width:36px;"></div>
+      <div class="logo-bar" style="width:30px;background:#F5F5F3;opacity:.4;"></div>
     </div>
-    <div style="margin-bottom:32px;">
-      <div class="eyebrow" style="margin-bottom:8px;">Painel de auditoria</div>
-      <div class="title-hero">Entrar</div>
-      <p class="text-muted" style="margin-top:12px; max-width:300px;">
-        Acesse o monitoramento de dispositivos e logs de auditoria criptográfica.
+
+    <!-- Center: headline + features -->
+    <div class="login-left-center">
+      <p style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:3px;color:rgba(245,245,243,.35);margin-bottom:20px;">
+        FIAP — Global Solution 2026
       </p>
+      <div class="hero-line1">Auditoria</div>
+      <div class="hero-line2">Criptográfica.</div>
+
+      <div class="features">
+        <div class="feature">
+          <div class="feature-icon">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+            </svg>
+          </div>
+          <div class="feature-text">
+            <div class="feature-title">ECDSA P-256</div>
+            <div class="feature-desc">Cada transação assinada com chave privada do hardware seguro.</div>
+          </div>
+        </div>
+        <div class="feature">
+          <div class="feature-icon">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/>
+            </svg>
+          </div>
+          <div class="feature-text">
+            <div class="feature-title">Hash Encadeado</div>
+            <div class="feature-desc">SHA-256 em cadeia — adulteração detectada deterministicamente.</div>
+          </div>
+        </div>
+        <div class="feature">
+          <div class="feature-icon">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <ellipse cx="12" cy="5" rx="9" ry="3"/><path d="M21 12c0 1.66-4 3-9 3s-9-1.34-9-3"/><path d="M3 5v14c0 1.66 4 3 9 3s9-1.34 9-3V5"/>
+            </svg>
+          </div>
+          <div class="feature-text">
+            <div class="feature-title">Evidência Forense</div>
+            <div class="feature-desc">Payload bruto persistido no MongoDB antes de qualquer validação.</div>
+          </div>
+        </div>
+      </div>
     </div>
-    <form id="loginForm" onsubmit="handleLogin(event)">
-      <div class="input-group">
-        <label class="input-label" for="fUsuario">Usuário</label>
-        <input type="text" id="fUsuario" placeholder="admin" autocomplete="username" />
-      </div>
-      <div class="input-group" style="margin-bottom:8px;">
-        <label class="input-label" for="fSenha">Senha</label>
-        <input type="password" id="fSenha" placeholder="••••••••" autocomplete="current-password" />
-      </div>
-      <div id="loginErr" class="error-box" style="display:none;"></div>
-      <button type="submit" class="btn-primary" id="loginBtn" style="margin-top:8px;">
-        <span id="loginBtnText">Entrar</span>
-        <div id="loginSpinner" class="spinner" style="display:none;"></div>
-      </button>
-    </form>
+
+    <!-- Bottom -->
+    <div class="login-left-bottom">
+      <p class="left-footer">Microsserviço .NET 8 · Clean Architecture · Oracle + MongoDB</p>
+    </div>
+  </div>
+
+  <!-- Right: form panel -->
+  <div class="login-right">
+    <!-- Theme toggle -->
+    <button class="theme-btn theme-btn-right" onclick="toggleTheme()" aria-label="Alternar tema">
+      <svg class="icon-sun" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <circle cx="12" cy="12" r="5"/>
+        <line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/>
+        <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/>
+        <line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/>
+        <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/>
+      </svg>
+      <svg class="icon-moon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>
+      </svg>
+    </button>
+
+    <div class="login-form-wrap">
+      <p class="form-eyebrow">Painel de auditoria</p>
+      <h1 class="form-title">Entrar</h1>
+      <p class="form-desc">Acesse o monitoramento de dispositivos e logs de auditoria.</p>
+
+      <form id="loginForm" onsubmit="handleLogin(event)">
+        <div class="input-group">
+          <label class="input-label" for="fUsuario">Usuário</label>
+          <input type="text" id="fUsuario" placeholder="admin" autocomplete="username" />
+        </div>
+        <div class="input-group" style="margin-bottom:8px;">
+          <label class="input-label" for="fSenha">Senha</label>
+          <input type="password" id="fSenha" placeholder="••••••••" autocomplete="current-password" />
+        </div>
+        <div id="loginErr" class="error-box" style="display:none;"></div>
+        <button type="submit" class="btn-primary" id="loginBtn">
+          <span id="loginBtnText">Entrar</span>
+          <div id="loginSpinner" class="spinner" style="display:none;"></div>
+        </button>
+      </form>
+    </div>
   </div>
 </div>
 
-<!-- ── Top bar ───────────────────────────────────────────────────────────── -->
+<!-- ═══════════════════════════════════════════════════
+     TOPBAR
+════════════════════════════════════════════════════ -->
 <header class="topbar" id="topbar" style="display:none;">
   <div class="topbar-left">
     <div>
       <div class="logo">
-        <span class="logo-off" style="font-size:20px;">OFF</span>
-        <span class="logo-pay" style="font-size:20px;">PAY</span>
+        <span class="logo-off" style="font-size:20px;color:rgb(var(--foreground));">OFF</span>
+        <span class="logo-pay" style="font-size:20px;color:rgb(var(--primary));">PAY</span>
       </div>
-      <div class="logo-bar" style="width:28px;margin-top:2px;"></div>
+      <div class="logo-bar" style="width:28px;background:rgb(var(--primary));margin-top:2px;"></div>
     </div>
-    <div class="topbar-divider"></div>
+    <div class="topbar-div"></div>
     <span class="topbar-label">Auditoria</span>
   </div>
   <div class="topbar-right">
@@ -370,10 +505,10 @@
       </svg>
       <span id="refreshLabel">—</span>
     </div>
-    <!-- Theme toggle -->
     <button class="theme-btn" onclick="toggleTheme()" aria-label="Alternar tema">
       <svg class="icon-sun" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-        <circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/>
+        <circle cx="12" cy="12" r="5"/>
+        <line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/>
         <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/>
         <line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/>
         <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/>
@@ -386,13 +521,15 @@
   </div>
 </header>
 
-<!-- ── Dashboard ─────────────────────────────────────────────────────────── -->
+<!-- ═══════════════════════════════════════════════════
+     DASHBOARD
+════════════════════════════════════════════════════ -->
 <main id="dashboard" class="page" style="display:none;">
 
   <div class="page-header">
     <div class="eyebrow" style="margin-bottom:8px;">Global Solution 2026</div>
     <div class="title-hero">Dashboard</div>
-    <p class="text-muted" style="margin-top:12px; max-width:360px;">
+    <p class="text-muted" style="margin-top:12px;max-width:360px;">
       Monitoramento de dispositivos e auditoria criptográfica de transações offline.
     </p>
   </div>
@@ -457,13 +594,11 @@
 <script>
   let jwt = null, refreshTimer = null, nextRefresh = null;
 
-  // ── Theme ─────────────────────────────────────────────────────────────────
   function toggleTheme() {
-    const isDark = document.documentElement.classList.toggle('dark');
-    localStorage.setItem('theme', isDark ? 'dark' : 'light');
+    const dark = document.documentElement.classList.toggle('dark');
+    localStorage.setItem('theme', dark ? 'dark' : 'light');
   }
 
-  // ── Login ─────────────────────────────────────────────────────────────────
   async function handleLogin(e) {
     e.preventDefault();
     const usuario = document.getElementById('fUsuario').value.trim();
@@ -474,29 +609,20 @@
     const errEl   = document.getElementById('loginErr');
 
     errEl.style.display = 'none';
-    btn.disabled = true;
-    btnTxt.style.display = 'none';
-    spinner.style.display = 'block';
+    btn.disabled = true; btnTxt.style.display = 'none'; spinner.style.display = 'block';
 
     try {
       const res = await fetch('/api/auth/login', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        method:'POST', headers:{'Content-Type':'application/json'},
         body: JSON.stringify({ usuario, senha })
       });
-      if (!res.ok) {
-        const d = await res.json().catch(() => ({}));
-        throw new Error(d.title || 'Credenciais inválidas.');
-      }
+      if (!res.ok) { const d = await res.json().catch(()=>({})); throw new Error(d.title || 'Credenciais inválidas.'); }
       jwt = (await res.json()).token;
       showDashboard();
     } catch (err) {
-      errEl.textContent = err.message;
-      errEl.style.display = 'block';
+      errEl.textContent = err.message; errEl.style.display = 'block';
     } finally {
-      btn.disabled = false;
-      btnTxt.style.display = 'inline';
-      spinner.style.display = 'none';
+      btn.disabled = false; btnTxt.style.display = 'inline'; spinner.style.display = 'none';
     }
   }
 
@@ -504,21 +630,18 @@
     document.getElementById('loginOverlay').style.display = 'none';
     document.getElementById('topbar').style.display = 'flex';
     document.getElementById('dashboard').style.display = 'block';
-    loadData();
-    startRefresh();
+    loadData(); startRefresh();
   }
 
   function logout() {
-    jwt = null;
-    clearInterval(refreshTimer);
+    jwt = null; clearInterval(refreshTimer);
     document.getElementById('loginOverlay').style.display = 'flex';
     document.getElementById('topbar').style.display = 'none';
     document.getElementById('dashboard').style.display = 'none';
   }
 
-  // ── Data ──────────────────────────────────────────────────────────────────
   async function api(url) {
-    const res = await fetch(url, { headers: { 'Authorization': `Bearer ${jwt}` } });
+    const res = await fetch(url, { headers:{'Authorization':`Bearer ${jwt}`} });
     if (!res.ok) throw new Error('HTTP ' + res.status);
     return res.json();
   }
@@ -534,33 +657,23 @@
       renderDevices(devs.itens || []);
       renderLogs(logs.itens || []);
       nextRefresh = Date.now() + 30000;
-    } catch (err) {
-      setApiStatus(false);
-      toast('Erro ao carregar: ' + err.message);
-    }
+    } catch (err) { setApiStatus(false); toast('Erro ao carregar: ' + err.message); }
   }
 
   function renderStats(devs, logs) {
-    const itens    = devs.itens || [];
-    const logItens = logs.itens || [];
-    const ativos   = itens.filter(d => d.status === 'Ativo').length;
-    const valid    = logItens.filter(l => l.statusValidacao === 'Validado').length;
-    const taxa     = logItens.length ? Math.round(valid / logItens.length * 100) : 0;
-
+    const it = devs.itens || [], li = logs.itens || [];
+    const ativos = it.filter(d => d.status === 'Ativo').length;
+    const valid  = li.filter(l => l.statusValidacao === 'Validado').length;
+    const taxa   = li.length ? Math.round(valid / li.length * 100) : 0;
     document.getElementById('statsGrid').innerHTML =
-      sc(iDevice(),  'Dispositivos', devs.totalRegistros  ?? itens.length,    'Total cadastrado')     +
-      sc(iCheck(),   'Ativos',       ativos,                                  'Em operação')          +
-      sc(iLog(),     'Logs',         logs.totalRegistros  ?? logItens.length,  'Transações auditadas') +
-      sc(iShield(),  'Taxa',         taxa + '%',                               'Validação');
+      sc(iDevice(), 'Dispositivos', devs.totalRegistros ?? it.length, 'Total cadastrado') +
+      sc(iCheck(),  'Ativos',       ativos,                           'Em operação')      +
+      sc(iLog(),    'Logs',         logs.totalRegistros ?? li.length,  'Auditadas')        +
+      sc(iShield(), 'Taxa',         taxa + '%',                        'Validação');
   }
 
   function sc(icon, label, value, desc) {
-    return `<div class="stat-card">
-      <div class="stat-icon">${icon}</div>
-      <div class="stat-label">${label}</div>
-      <div class="stat-value">${value}</div>
-      <div class="stat-desc">${desc}</div>
-    </div>`;
+    return `<div class="stat-card"><div class="stat-icon">${icon}</div><div class="stat-label">${label}</div><div class="stat-value">${value}</div><div class="stat-desc">${desc}</div></div>`;
   }
 
   function renderDevices(items) {
@@ -586,14 +699,12 @@
   }
 
   function bStatus(s) {
-    const m = { Ativo:['badge-green','Ativo'], Bloqueado:['badge-orange','Bloqueado'], Revogado:['badge-red','Revogado'] };
-    const [c,l] = m[s] || ['badge-gray', s];
-    return `<span class="badge ${c}">${l}</span>`;
+    const m = {Ativo:['badge-green','Ativo'],Bloqueado:['badge-orange','Bloqueado'],Revogado:['badge-red','Revogado']};
+    const [c,l] = m[s]||['badge-gray',s]; return `<span class="badge ${c}">${l}</span>`;
   }
   function bValid(s) {
-    const m = { Validado:['badge-green','Validado'], AssinaturaInvalida:['badge-orange','Assinatura'], HashQuebrado:['badge-red','Hash'], DispositivoBloqueado:['badge-red','Bloqueado'] };
-    const [c,l] = m[s] || ['badge-gray', s];
-    return `<span class="badge ${c}">${l}</span>`;
+    const m = {Validado:['badge-green','Validado'],AssinaturaInvalida:['badge-orange','Assinatura'],HashQuebrado:['badge-red','Hash'],DispositivoBloqueado:['badge-red','Bloqueado']};
+    const [c,l] = m[s]||['badge-gray',s]; return `<span class="badge ${c}">${l}</span>`;
   }
 
   function startRefresh() {
@@ -611,25 +722,21 @@
   }
 
   function toast(msg) {
-    const wrap = document.getElementById('toastWrap');
-    const el = document.createElement('div');
-    el.className = 'toast';
-    el.textContent = msg;
-    wrap.appendChild(el);
+    const el = document.createElement('div'); el.className = 'toast'; el.textContent = msg;
+    document.getElementById('toastWrap').appendChild(el);
     setTimeout(() => el.remove(), 4000);
   }
 
-  // ── Icons (currentColor via parent .stat-icon) ────────────────────────────
   const S = d => `<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">${d}</svg>`;
-  const iDevice  = () => S('<rect x="5" y="2" width="14" height="20" rx="3"/><line x1="12" y1="18" x2="12.01" y2="18"/>');
-  const iCheck   = () => S('<path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/>');
-  const iLog     = () => S('<path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/>');
-  const iShield  = () => S('<path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>');
+  const iDevice = () => S('<rect x="5" y="2" width="14" height="20" rx="3"/><line x1="12" y1="18" x2="12.01" y2="18"/>');
+  const iCheck  = () => S('<path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/>');
+  const iLog    = () => S('<path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/>');
+  const iShield = () => S('<path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>');
 
-  function x(s) { return String(s ?? '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+  function x(s) { return String(s??'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
   function dt(iso) {
     if (!iso) return '—';
-    try { return new Date(iso).toLocaleDateString('pt-BR', { day:'2-digit', month:'2-digit', year:'2-digit' }); }
+    try { return new Date(iso).toLocaleDateString('pt-BR',{day:'2-digit',month:'2-digit',year:'2-digit'}); }
     catch { return '—'; }
   }
 </script>
