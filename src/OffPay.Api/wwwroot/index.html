@@ -241,8 +241,26 @@
     .title-section { font-size:20px; font-weight:900; letter-spacing:-0.5px; }
     .text-muted    { color:rgb(var(--mfg)); font-size:14px; line-height:1.7; }
 
+    /* ── Health strip ── */
+    .health-strip {
+      display:flex; align-items:center; gap:20px; margin-top:20px; flex-wrap:wrap;
+    }
+    .h-item { display:flex; align-items:center; gap:7px; }
+    .h-dot  { width:7px; height:7px; border-radius:50%; flex-shrink:0; transition:background-color .3s; }
+    .h-dot.ok      { background:#22c55e; }
+    .h-dot.err     { background:#ef4444; }
+    .h-dot.loading { background:rgb(var(--bdr)); animation:pulse 1.5s infinite; }
+    .h-label { font-size:12px; font-weight:700; color:rgb(var(--fg)); }
+    .h-ms {
+      font-size:10px; font-weight:700; font-variant-numeric:tabular-nums;
+      color:rgb(var(--mfg)); background:rgb(var(--muted));
+      padding:2px 8px; border-radius:9999px; margin-left:2px;
+      transition:background-color .3s;
+    }
+    .h-sep { width:1px; height:14px; background:rgb(var(--bdr)); flex-shrink:0; transition:background-color .3s; }
+
     /* ── Stats ── */
-    .stats-grid { display:grid; grid-template-columns:repeat(4,1fr); gap:12px; margin:36px 0 48px; }
+    .stats-grid { display:grid; grid-template-columns:repeat(4,1fr); gap:12px; margin:36px 0 40px; }
     .stat-card {
       background:rgb(var(--card)); border:1px solid rgb(var(--bdr));
       border-radius:var(--rmd); padding:24px;
@@ -264,6 +282,29 @@
     }
     .stat-num { font-size:42px; font-weight:900; letter-spacing:-2px; color:rgb(var(--cfg)); line-height:1; font-variant-numeric:tabular-nums; }
     .stat-dsc { font-size:12px; color:rgb(var(--mfg)); margin-top:8px; }
+
+    /* ── Donut chart ── */
+    .chart-card {
+      background:rgb(var(--card)); border:1px solid rgb(var(--bdr));
+      border-radius:var(--rmd); padding:32px 40px; margin-bottom:40px;
+      display:flex; align-items:center; gap:52px;
+      transition:background-color .3s, border-color .3s;
+    }
+    .chart-left { display:flex; flex-direction:column; align-items:center; gap:10px; flex-shrink:0; }
+    .chart-eyebrow { font-size:10px; font-weight:700; text-transform:uppercase; letter-spacing:2px; color:rgb(var(--mfg)); }
+    .chart-svg { color:rgb(var(--fg)); display:block; }
+    .chart-right { flex:1; min-width:0; }
+    .chart-right-head { margin-bottom:8px; }
+    .legend-item {
+      display:flex; align-items:center; gap:12px;
+      padding:11px 0; border-bottom:1px solid rgb(var(--bdr));
+      transition:border-color .3s;
+    }
+    .legend-item:last-child { border-bottom:none; }
+    .legend-dot { width:10px; height:10px; border-radius:3px; flex-shrink:0; }
+    .legend-label { font-size:13px; color:rgb(var(--cfg)); flex:1; transition:color .3s; }
+    .legend-num { font-size:22px; font-weight:900; letter-spacing:-1px; font-variant-numeric:tabular-nums; }
+    .legend-pct { font-size:11px; color:rgb(var(--mfg)); width:34px; text-align:right; transition:color .3s; }
 
     /* ── Section headers ── */
     .section-row {
@@ -299,6 +340,8 @@
     tbody td { padding:15px 20px; font-size:13px; color:rgb(var(--cfg)); transition:background-color .15s, color .3s; }
     tbody td:first-child { padding-left:24px; }
     .col-num { color:rgb(var(--mfg)); font-size:11px; font-weight:700; width:36px; text-align:right; padding-right:8px; }
+    .row-clickable { cursor:pointer; }
+    .row-clickable:hover .trunc { color:rgb(var(--cfg)) !important; }
 
     /* ── Badges ── */
     .badge {
@@ -326,6 +369,41 @@
     }
     @keyframes tin { from{opacity:0;transform:translateY(8px)} to{opacity:1;transform:translateY(0)} }
 
+    /* ── Modal ── */
+    dialog {
+      border:none; border-radius:var(--rmd); padding:0;
+      max-width:600px; width:calc(100% - 48px);
+      background:rgb(var(--card)); color:rgb(var(--cfg));
+      box-shadow:0 32px 80px rgba(0,0,0,.28);
+    }
+    dialog::backdrop { background:rgba(0,0,0,.55); backdrop-filter:blur(3px); }
+    .modal-head {
+      display:flex; align-items:flex-start; justify-content:space-between; gap:16px;
+      padding:24px 28px 20px; border-bottom:1px solid rgb(var(--bdr));
+      transition:border-color .3s;
+    }
+    .modal-eyebrow { font-size:10px; font-weight:700; text-transform:uppercase; letter-spacing:3px; color:rgb(var(--mfg)); margin-bottom:5px; transition:color .3s; }
+    .modal-title   { font-size:18px; font-weight:900; letter-spacing:-0.5px; }
+    .modal-close {
+      width:32px; height:32px; border-radius:9999px; border:none; flex-shrink:0;
+      background:rgb(var(--muted)); color:rgb(var(--cfg));
+      cursor:pointer; display:flex; align-items:center; justify-content:center;
+      transition:background-color .3s, color .3s;
+    }
+    .modal-close:hover { opacity:.7; }
+    .modal-body { padding:24px 28px 28px; }
+    .modal-grid { display:grid; grid-template-columns:1fr 1fr; gap:16px 28px; }
+    .mf { display:flex; flex-direction:column; gap:5px; }
+    .mf-full { grid-column:1/-1; }
+    .mf-label { font-size:10px; font-weight:700; text-transform:uppercase; letter-spacing:2px; color:rgb(var(--mfg)); transition:color .3s; }
+    .mf-val   { font-size:13px; font-weight:500; color:rgb(var(--cfg)); transition:color .3s; }
+    .mf-mono  {
+      font-family:"SF Mono","Fira Code",monospace; font-size:11px; line-height:1.7;
+      word-break:break-all; color:rgb(var(--cfg)); background:rgb(var(--muted));
+      padding:8px 12px; border-radius:10px; transition:background-color .3s, color .3s;
+    }
+    .mf-sep { grid-column:1/-1; height:1px; background:rgb(var(--bdr)); margin:4px 0; transition:background-color .3s; }
+
     /* ── Logo ── */
     .logo { display:flex; align-items:baseline; }
 
@@ -345,6 +423,7 @@
       .content { margin-left:0; }
       .stats-grid { grid-template-columns:repeat(2,1fr); }
       .content-inner { padding:32px 20px 80px; }
+      .chart-card { flex-direction:column; gap:28px; align-items:flex-start; }
     }
     @media (max-width:500px) { .stats-grid { grid-template-columns:1fr; } }
     @media (max-width:768px) {
@@ -352,6 +431,8 @@
       .login-left  { width:100%; min-height:auto; padding:36px 28px 40px; }
       .login-right { width:100%; min-height:auto; padding:40px 28px 60px; justify-content:flex-start; }
       .hero-line1,.hero-line2 { font-size:clamp(36px,10vw,52px); }
+      .modal-grid { grid-template-columns:1fr; }
+      .mf-full { grid-column:1; }
     }
   </style>
 </head>
@@ -493,9 +574,29 @@
       <section id="overview">
         <div class="eyebrow" style="margin-bottom:10px;">Global Solution 2026</div>
         <h1 class="title-hero">Dashboard</h1>
-        <p class="text-muted" style="margin-top:10px;max-width:420px;">
+        <p class="text-muted" style="margin-top:10px;max-width:480px;">
           Monitoramento de dispositivos e auditoria criptográfica de transações offline.
         </p>
+        <!-- Health strip -->
+        <div class="health-strip" id="healthStrip">
+          <div class="h-item">
+            <div class="h-dot loading" id="hDotApi"></div>
+            <span class="h-label">API</span>
+            <span class="h-ms" id="hMsApi">—</span>
+          </div>
+          <div class="h-sep"></div>
+          <div class="h-item">
+            <div class="h-dot loading" id="hDotOracle"></div>
+            <span class="h-label">Oracle</span>
+            <span class="h-ms" id="hMsOracle">—</span>
+          </div>
+          <div class="h-sep"></div>
+          <div class="h-item">
+            <div class="h-dot loading" id="hDotMongo"></div>
+            <span class="h-label">MongoDB</span>
+            <span class="h-ms" id="hMsMongo">—</span>
+          </div>
+        </div>
       </section>
 
       <!-- Stats -->
@@ -504,6 +605,25 @@
         <div class="stat-card"><div class="stat-top"><span class="stat-tag">—</span><div class="sk" style="width:32px;height:32px;border-radius:10px;"></div></div><div class="sk" style="width:80px;height:42px;border-radius:8px;margin-bottom:8px;"></div><div class="sk" style="width:120px;height:12px;"></div></div>
         <div class="stat-card"><div class="stat-top"><span class="stat-tag">—</span><div class="sk" style="width:32px;height:32px;border-radius:10px;"></div></div><div class="sk" style="width:80px;height:42px;border-radius:8px;margin-bottom:8px;"></div><div class="sk" style="width:120px;height:12px;"></div></div>
         <div class="stat-card"><div class="stat-top"><span class="stat-tag">—</span><div class="sk" style="width:32px;height:32px;border-radius:10px;"></div></div><div class="sk" style="width:80px;height:42px;border-radius:8px;margin-bottom:8px;"></div><div class="sk" style="width:120px;height:12px;"></div></div>
+      </div>
+
+      <!-- Donut chart -->
+      <div class="chart-card" id="chartSection">
+        <div class="chart-left">
+          <span class="chart-eyebrow">Distribuição</span>
+          <svg class="chart-svg" viewBox="0 0 120 120" width="168" height="168" id="donutSvg">
+            <circle cx="60" cy="60" r="45" fill="none" stroke="rgb(var(--bdr))" stroke-width="12"/>
+          </svg>
+        </div>
+        <div class="chart-right">
+          <div class="chart-right-head">
+            <div class="eyebrow" style="margin-bottom:4px;">Validações</div>
+            <div style="font-size:20px;font-weight:900;letter-spacing:-0.5px;">Resultado por Status</div>
+          </div>
+          <div id="donutLegend" style="margin-top:12px;">
+            <div style="color:rgb(var(--mfg));font-size:13px;padding:16px 0;">Carregando...</div>
+          </div>
+        </div>
       </div>
 
       <!-- Devices section -->
@@ -560,11 +680,68 @@
   </main>
 </div>
 
+<!-- ══════════════════════════════════════════
+     LOG DETAIL MODAL
+══════════════════════════════════════════ -->
+<dialog id="logModal">
+  <div class="modal-head">
+    <div>
+      <div class="modal-eyebrow">Log de Auditoria</div>
+      <div class="modal-title" id="modalTitle">—</div>
+    </div>
+    <button class="modal-close" onclick="closeModal()" aria-label="Fechar">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+    </button>
+  </div>
+  <div class="modal-body">
+    <div class="modal-grid">
+      <div class="mf">
+        <span class="mf-label">Status</span>
+        <div id="mStatus"></div>
+      </div>
+      <div class="mf">
+        <span class="mf-label">Dispositivo ID</span>
+        <span class="mf-val" id="mDevId"></span>
+      </div>
+      <div class="mf">
+        <span class="mf-label">Timestamp Transação</span>
+        <span class="mf-val" id="mTs"></span>
+      </div>
+      <div class="mf">
+        <span class="mf-label">Recebido em</span>
+        <span class="mf-val" id="mRec"></span>
+      </div>
+      <div class="mf mf-full">
+        <span class="mf-label">Lote ID</span>
+        <span class="mf-mono" id="mLoteId"></span>
+      </div>
+      <div class="mf-sep"></div>
+      <div class="mf mf-full">
+        <span class="mf-label">Transação ID</span>
+        <span class="mf-mono" id="mTid"></span>
+      </div>
+      <div class="mf mf-full">
+        <span class="mf-label">Hash Atual (SHA-256)</span>
+        <span class="mf-mono" id="mHash"></span>
+      </div>
+      <div class="mf mf-full">
+        <span class="mf-label">Hash Anterior</span>
+        <span class="mf-mono" id="mHashPrev"></span>
+      </div>
+      <div class="mf mf-full" id="mObsWrap" style="display:none;">
+        <span class="mf-label">Observação</span>
+        <span class="mf-val" id="mObs" style="color:rgb(var(--danger));"></span>
+      </div>
+    </div>
+  </div>
+</dialog>
+
 <div class="toast-wrap" id="toastWrap"></div>
 
 <script>
   let jwt = null, refreshTimer = null, nextRefresh = null;
   let totalDevs = 0, totalLogs = 0;
+  let logsCache = [];
 
   // ── Theme ─────────────────────────────────────────────────────────────────
   function toggleTheme() {
@@ -578,7 +755,6 @@
     el.classList.add('active');
   }
 
-  // Highlight nav on scroll
   window.addEventListener('scroll', () => {
     const sections = ['overview','dispositivos','auditoria'];
     const links    = document.querySelectorAll('.nav-item');
@@ -620,13 +796,42 @@
   function showDashboard() {
     document.getElementById('loginOverlay').style.display = 'none';
     document.getElementById('dashLayout').style.display = 'flex';
-    loadData(); startRefresh();
+    loadData(); loadHealth(); startRefresh();
   }
 
   function logout() {
     jwt = null; clearInterval(refreshTimer);
     document.getElementById('loginOverlay').style.display = 'flex';
     document.getElementById('dashLayout').style.display = 'none';
+  }
+
+  // ── Health check ──────────────────────────────────────────────────────────
+  async function loadHealth() {
+    // API liveness
+    try {
+      const t = performance.now();
+      const r = await fetch('/health/live');
+      setHealth('Api', r.ok, Math.round(performance.now() - t));
+    } catch { setHealth('Api', false, null); }
+
+    // Ready = Oracle + MongoDB
+    try {
+      const t = performance.now();
+      const r = await fetch('/health/ready');
+      const ms = Math.round(performance.now() - t);
+      setHealth('Oracle', r.ok, ms);
+      setHealth('Mongo',  r.ok, ms);
+    } catch {
+      setHealth('Oracle', false, null);
+      setHealth('Mongo',  false, null);
+    }
+  }
+
+  function setHealth(name, ok, ms) {
+    const dot  = document.getElementById('hDot' + name);
+    const msEl = document.getElementById('hMs'  + name);
+    if (dot)  dot.className  = 'h-dot ' + (ok ? 'ok' : 'err');
+    if (msEl) msEl.textContent = ms !== null ? ms + 'ms' : '—';
   }
 
   // ── Data ──────────────────────────────────────────────────────────────────
@@ -644,6 +849,7 @@
       ]);
       setStatus(true);
       renderStats(devs, logs);
+      renderChart(logs);
       renderDevices(devs.itens || []);
       renderLogs(logs.itens || []);
       totalDevs = devs.totalRegistros ?? (devs.itens||[]).length;
@@ -673,6 +879,61 @@
       S('Validação',    iShd(), taxa+'%',                        `${valid} de ${li.length} validadas`);
   }
 
+  // ── Donut chart ───────────────────────────────────────────────────────────
+  function renderChart(logs) {
+    const li  = logs.itens || [];
+    const cnt = { Validado:0, AssinaturaInvalida:0, HashQuebrado:0, DispositivoBloqueado:0 };
+    li.forEach(l => { if (cnt[l.statusValidacao] !== undefined) cnt[l.statusValidacao]++; });
+
+    const total = li.length;
+    const segs  = [
+      { key:'Validado',            color:'#22c55e', label:'Validado' },
+      { key:'AssinaturaInvalida',  color:'#f97316', label:'Assinatura Inválida' },
+      { key:'HashQuebrado',        color:'#ef4444', label:'Hash Quebrado' },
+      { key:'DispositivoBloqueado',color:'#71717a', label:'Disp. Bloqueado' },
+    ];
+
+    const svg    = document.getElementById('donutSvg');
+    const legend = document.getElementById('donutLegend');
+
+    if (!total) {
+      svg.innerHTML = `
+        <circle cx="60" cy="60" r="45" fill="none" stroke="rgb(var(--bdr))" stroke-width="12"/>
+        <text x="60" y="56" text-anchor="middle" font-size="19" font-weight="900" fill="currentColor">0%</text>
+        <text x="60" y="71" text-anchor="middle" font-size="8" font-weight="700" fill="rgb(var(--mfg))">SEM DADOS</text>`;
+      legend.innerHTML = '<div style="color:rgb(var(--mfg));font-size:14px;padding:20px 0;">Nenhuma transação auditada ainda.</div>';
+      return;
+    }
+
+    const C = 2 * Math.PI * 45;
+    let off = 0;
+    const circles = segs.map(seg => {
+      const n = cnt[seg.key];
+      if (!n) return '';
+      const len  = (n / total) * C;
+      const dash = -(off / total) * C;
+      off += n;
+      return `<circle cx="60" cy="60" r="45" fill="none" stroke="${seg.color}" stroke-width="12"
+        stroke-dasharray="${len} ${C}" stroke-dashoffset="${dash}" transform="rotate(-90 60 60)"/>`;
+    }).join('');
+
+    const pct = Math.round((cnt.Validado / total) * 100);
+    svg.innerHTML = `${circles}
+      <text x="60" y="55" text-anchor="middle" font-size="20" font-weight="900" fill="currentColor">${pct}%</text>
+      <text x="60" y="70" text-anchor="middle" font-size="8" font-weight="700" fill="rgb(var(--mfg))">VÁLIDAS</text>`;
+
+    legend.innerHTML = segs.map(seg => {
+      const n = cnt[seg.key];
+      const p = Math.round(n / total * 100);
+      return `<div class="legend-item">
+        <div class="legend-dot" style="background:${seg.color};"></div>
+        <span class="legend-label">${seg.label}</span>
+        <span class="legend-num" style="color:${seg.color};">${n}</span>
+        <span class="legend-pct">${p}%</span>
+      </div>`;
+    }).join('');
+  }
+
   // ── Devices ───────────────────────────────────────────────────────────────
   function renderDevices(items) {
     const b = document.getElementById('devicesBody');
@@ -688,9 +949,10 @@
 
   // ── Logs ─────────────────────────────────────────────────────────────────
   function renderLogs(items) {
+    logsCache = items;
     const b = document.getElementById('logsBody');
     if (!items.length) { b.innerHTML = empty(iShd(), 'Nenhum log de auditoria'); return; }
-    b.innerHTML = items.map((l,i) => `<tr>
+    b.innerHTML = items.map((l,i) => `<tr class="row-clickable" onclick="openLogModal(logsCache[${i}])" title="Ver detalhes">
       <td class="col-num">${i+1}</td>
       <td><span class="trunc mono" style="font-weight:700;">${x(l.transacaoId)}</span></td>
       <td><span class="trunc mono" style="color:rgb(var(--mfg));">${x(l.loteId)}</span></td>
@@ -700,6 +962,35 @@
     </tr>`).join('');
   }
 
+  // ── Modal ─────────────────────────────────────────────────────────────────
+  function openLogModal(log) {
+    const tid = log.transacaoId || '—';
+    document.getElementById('modalTitle').textContent = tid.length > 8 ? tid.substring(0,8) + '...' : tid;
+    document.getElementById('mStatus').innerHTML = bv(log.statusValidacao);
+    document.getElementById('mDevId').textContent = log.dispositivoId || '—';
+    document.getElementById('mTs').textContent    = dtFull(log.timestampTransacao);
+    document.getElementById('mRec').textContent   = dtFull(log.timestampRecebimento);
+    document.getElementById('mLoteId').textContent    = log.loteId       || '—';
+    document.getElementById('mTid').textContent        = log.transacaoId  || '—';
+    document.getElementById('mHash').textContent       = log.hashTransacao || '—';
+    document.getElementById('mHashPrev').textContent   = log.hashAnterior  || '—';
+    const obsWrap = document.getElementById('mObsWrap');
+    if (log.observacao) {
+      document.getElementById('mObs').textContent = log.observacao;
+      obsWrap.style.display = 'block';
+    } else {
+      obsWrap.style.display = 'none';
+    }
+    document.getElementById('logModal').showModal();
+  }
+
+  function closeModal() { document.getElementById('logModal').close(); }
+
+  document.getElementById('logModal').addEventListener('click', e => {
+    if (e.target === e.currentTarget) closeModal();
+  });
+
+  // ── Helpers ───────────────────────────────────────────────────────────────
   function empty(ico, msg) {
     return `<tr><td colspan="6"><div class="empty-state"><div class="empty-icon">${ico}</div><span class="empty-text">${msg}</span></div></td></tr>`;
   }
@@ -716,7 +1007,7 @@
   // ── Refresh ───────────────────────────────────────────────────────────────
   function startRefresh() {
     clearInterval(refreshTimer);
-    refreshTimer = setInterval(()=>{ if(jwt) loadData(); }, 30000);
+    refreshTimer = setInterval(()=>{ if(jwt){ loadData(); loadHealth(); } }, 30000);
     setInterval(()=>{
       if(!nextRefresh) return;
       document.getElementById('sRefresh').textContent = Math.max(0,Math.ceil((nextRefresh-Date.now())/1000))+'s';
@@ -742,11 +1033,16 @@
   const iLog = () => I('<path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/>');
   const iShd = () => I('<path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>');
 
-  // ── Helpers ───────────────────────────────────────────────────────────────
+  // ── Formatters ────────────────────────────────────────────────────────────
   function x(s) { return String(s??'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
   function dt(iso) {
     if(!iso) return '—';
     try { return new Date(iso).toLocaleDateString('pt-BR',{day:'2-digit',month:'2-digit',year:'2-digit'}); }
+    catch { return '—'; }
+  }
+  function dtFull(iso) {
+    if(!iso) return '—';
+    try { return new Date(iso).toLocaleString('pt-BR',{day:'2-digit',month:'2-digit',year:'numeric',hour:'2-digit',minute:'2-digit',second:'2-digit'}); }
     catch { return '—'; }
   }
 </script>
