@@ -12,7 +12,7 @@ para garantir **integridade, autenticidade e rastreabilidade** de cada lançamen
 
 ## 1. Contexto do Problema
 
-Em regiões de baixa ou nenhuma conectividade — Amazônia, áreas rurais isoladas, zonas de desastre — o acesso à internet costuma depender de infraestrutura espacial (Starlink, Iridium, programas de resposta a desastres etc.). Nesses cenários:
+Em regiões de baixa ou nenhuma conectividade: Amazônia, áreas rurais isoladas e zonas de desastre, o acesso à internet costuma depender de infraestrutura espacial (Starlink, Iridium, programas de resposta a desastres etc.). Nesses cenários:
 
 - Estar offline é o **padrão**, não a exceção;
 - Pequenos comerciantes precisam continuar operando mesmo sem rede;
