@@ -1,5 +1,3 @@
----
-
 # OffPay – Backend de Auditoria para Pagamentos Offline
 
 Microsserviço construído em **.NET 8** para atuar como **motor de auditoria e compliance** de transações financeiras realizadas sem conexão com a internet.  
